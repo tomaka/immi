@@ -3,7 +3,7 @@ use Draw;
 use DrawContext;
 use HorizontalAlignment;
 
-pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::Resource, text: &str,
+pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::FontResource, text: &str,
                                  alignment: &Alignment)
 {
     let ratio = draw.draw().get_text_width_per_em(font, text);
@@ -12,7 +12,7 @@ pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::Resource, text
     draw.draw().draw_text(font, &draw.matrix(), text);
 }
 
-pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::Resource, text: &str,
+pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::FontResource, text: &str,
                                alignment: &Alignment)
 {
     let ratio = draw.draw().get_text_width_per_em(font, text);
@@ -23,7 +23,7 @@ pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::Resource, text: 
 
 /// The text will use the current height and will stretch horizontally as needed to preserve the
 /// correct aspect ratio.
-pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::Resource, text: &str,
+pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::FontResource, text: &str,
                               alignment: &HorizontalAlignment)
 {
     let ratio = draw.draw().get_text_width_per_em(font, text);
