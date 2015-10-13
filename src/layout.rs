@@ -2,8 +2,12 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::MutexGuard;
 
+use time;
+
 use Draw;
 use Matrix;
+
+use animations::Animation;
 
 /// Contains everything required to draw a widget.
 pub struct DrawContext<'a, D: ?Sized + Draw + 'a> {
@@ -305,6 +309,23 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
                                 * Matrix::scale_wh(width_percent, height_percent),
             width: self.width * width_percent,
             height: self.height * height_percent,
+            draw: self.draw.clone(),
+            cursor: self.cursor,
+        }
+    }
+
+    pub fn animate<A>(&self, animation: A, start_time: u64, duration_ns: u64,
+                      initial_pos: [f32; 2]) -> DrawContext<'a, D> where A: Animation
+    {
+        let now = time::precise_time_ns();
+
+        let x = animation.calculate(now, start_time, duration_ns, initial_pos[0]);
+        let y = animation.calculate(now, start_time, duration_ns, initial_pos[1]);
+
+        DrawContext {
+            matrix: self.matrix * Matrix::translate(x, y),
+            width: self.width,
+            height: self.height,
             draw: self.draw.clone(),
             cursor: self.cursor,
         }
