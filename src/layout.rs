@@ -17,18 +17,24 @@ pub struct DrawContext<'a, D: ?Sized + Draw + 'a> {
     draw: Arc<Mutex<&'a mut D>>,
 
     cursor: Option<[f32; 2]>,
+    cursor_was_pressed: bool,
+    cursor_was_released: bool,
 }
 
 impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     // TODO: change this
     /// UNSTABLE, WILL BE CHANGED
-    pub fn start(width: f32, height: f32, draw: &'a mut D, cursor: Option<[f32; 2]>) -> DrawContext<'a, D> {
+    pub fn start(width: f32, height: f32, draw: &'a mut D, cursor: Option<[f32; 2]>,
+                 cursor_was_pressed: bool, cursor_was_released: bool) -> DrawContext<'a, D>
+    {
         DrawContext {
             matrix: Matrix::identity(),
             width: width,
             height: height,
             draw: Arc::new(Mutex::new(draw)),
             cursor: cursor,
+            cursor_was_pressed: cursor_was_pressed,
+            cursor_was_released: cursor_was_released,
         }
     }
 
@@ -41,6 +47,11 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     #[inline]
     pub fn matrix(&self) -> &Matrix {
         &self.matrix
+    }
+
+    #[inline]
+    pub fn cursor_was_released(&self) -> bool {
+        self.cursor_was_released
     }
 
     /// Returns true if the cursor is currently hovering this part of the viewport.
@@ -183,6 +194,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             height: self.height * scale,
             draw: self.draw.clone(),
             cursor: self.cursor,
+            cursor_was_pressed: self.cursor_was_pressed,
+            cursor_was_released: self.cursor_was_released,
         }
     }
 
@@ -207,6 +220,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             height: self.height,
             draw: self.draw.clone(),
             cursor: self.cursor,
+            cursor_was_pressed: self.cursor_was_pressed,
+            cursor_was_released: self.cursor_was_released,
         }
     }
 
@@ -285,6 +300,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
                 height: new_height,
                 draw: self.draw.clone(),
                 cursor: self.cursor,
+                cursor_was_pressed: self.cursor_was_pressed,
+                cursor_was_released: self.cursor_was_released,
             }
         }).collect()
     }
@@ -311,6 +328,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             height: self.height * height_percent,
             draw: self.draw.clone(),
             cursor: self.cursor,
+            cursor_was_pressed: self.cursor_was_pressed,
+            cursor_was_released: self.cursor_was_released,
         }
     }
 
@@ -328,6 +347,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             height: self.height,
             draw: self.draw.clone(),
             cursor: self.cursor,
+            cursor_was_pressed: self.cursor_was_pressed,
+            cursor_was_released: self.cursor_was_released,
         }
     }
 }
@@ -340,6 +361,8 @@ impl<'a, D: ?Sized + Draw + 'a> Clone for DrawContext<'a, D> {
             height: self.height.clone(),
             draw: self.draw.clone(),
             cursor: self.cursor.clone(),
+            cursor_was_pressed: self.cursor_was_pressed,
+            cursor_was_released: self.cursor_was_released,
         }
     }
 }
