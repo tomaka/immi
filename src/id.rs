@@ -5,6 +5,7 @@ lazy_static! {
     static ref NEXT_ID: AtomicUsize = AtomicUsize::new(1);
 }
 
+/// UNUSED, may be removed
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WidgetId(u64);
 

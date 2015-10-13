@@ -5,6 +5,7 @@ use std::sync::MutexGuard;
 use Draw;
 use Matrix;
 
+/// Contains everything required to draw a widget.
 pub struct DrawContext<'a, D: ?Sized + Draw + 'a> {
     matrix: Matrix,
     width: f32,
@@ -16,6 +17,7 @@ pub struct DrawContext<'a, D: ?Sized + Draw + 'a> {
 
 impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     // TODO: change this
+    /// UNSTABLE, WILL BE CHANGED
     pub fn start(width: f32, height: f32, draw: &'a mut D, cursor: Option<[f32; 2]>) -> DrawContext<'a, D> {
         DrawContext {
             matrix: Matrix::identity(),
@@ -26,6 +28,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         }
     }
 
+    /// UNSTABLE. Obtains the underlying `draw` object.
     #[inline]
     pub fn draw(&self) -> MutexGuard<&'a mut D> {
         self.draw.lock().unwrap()
@@ -99,11 +102,15 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         }
     }
 
+    /// Returns the ratio of the width of the surface divided by its height.
     #[inline]
     pub fn width_per_height(&self) -> f32 {
         self.width / self.height
     }
 
+    /// Builds a new draw context containing a subpart of the current context, but with a margin.
+    ///
+    /// The margin is expressed in percentage of the surface.
     #[inline]
     pub fn margin(&self, top: f32, right: f32, bottom: f32, left: f32) -> DrawContext<'a, D> {
         // TODO: could be more efficient
@@ -111,7 +118,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             .absolute(1.0 - right, 1.0 - bottom, &Alignment::center())
     }
 
-    /// Modifies the layout so that the given width per height ratio is respected.
+    /// Modifies the layout so that the given width per height ratio is respected. The size of the
+    /// new viewport will always been equal or small to the existing viewport.
     ///
     /// If the viewport needs to be reduced horizontally, then the horizontal alignment is used. If
     /// it needs to be reduced vertically, then the vertical alignment is used.
@@ -130,7 +138,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         }
     }
 
-    /// Modifies the layout so that the given width per height ratio is respected.
+    /// Modifies the layout so that the given width per height ratio is respected. The size of the
+    /// new viewport will always been equal or greater to the existing viewport.
     ///
     /// If the viewport needs to be increased horizontally, then the horizontal alignment is used.
     /// If it needs to be increased vertically, then the vertical alignment is used.
@@ -149,6 +158,11 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         }
     }
 
+    /// Builds a new draw context containing a subpart of the current context. The width of the new
+    /// viewport will be the same as the current one, but its new height will be multipled by
+    /// the value of `scale`.
+    ///
+    /// The alignment is used to determine the position of the new viewport inside the old one.
     #[inline]
     pub fn vertical_rescale(&self, scale: f32, alignment: &VerticalAlignment)
                             -> DrawContext<'a, D>
@@ -168,6 +182,11 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         }
     }
 
+    /// Builds a new draw context containing a subpart of the current context. The height of the new
+    /// viewport will be the same as the current one, but its new width will be multipled by
+    /// the value of `scale`.
+    ///
+    /// The alignment is used to determine the position of the new viewport inside the old one.
     #[inline]
     pub fn horizontal_rescale(&self, scale: f32, alignment: &HorizontalAlignment)
                               -> DrawContext<'a, D>
@@ -187,6 +206,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         }
     }
 
+    /// Splits the viewport in `splits` vertical chunks of equal size.
     // TODO: don't return a Vec
     #[inline]
     pub fn vertical_split(&self, splits: usize) -> Vec<DrawContext<'a, D>> {
@@ -195,6 +215,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         self.vertical_split_weights((0 .. splits).map(gen as fn(usize) -> f32))
     }
 
+    /// Same as `vertical_split`, but attributes a weight to each chunk. For example a chunk of
+    /// weight 2 will have twice the size of a chunk of weight 1.
     // TODO: don't return a Vec
     #[inline]
     pub fn vertical_split_weights<I>(&self, weights: I) -> Vec<DrawContext<'a, D>>
@@ -203,6 +225,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         self.split_weights(weights, true)
     }
 
+    /// Splits the viewport in `splits` horizontal chunks of equal size.
     // TODO: don't return a Vec
     #[inline]
     pub fn horizontal_split(&self, splits: usize) -> Vec<DrawContext<'a, D>> {
@@ -211,6 +234,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         self.horizontal_split_weights((0 .. splits).map(gen as fn(usize) -> f32))
     }
 
+    /// Same as `horizontal_split`, but attributes a weight to each chunk. For example a chunk of
+    /// weight 2 will have twice the size of a chunk of weight 1.
     // TODO: don't return a Vec
     #[inline]
     pub fn horizontal_split_weights<I>(&self, weights: I) -> Vec<DrawContext<'a, D>>
@@ -298,6 +323,7 @@ impl<'a, D: ?Sized + Draw + 'a> Clone for DrawContext<'a, D> {
     }
 }
 
+/// Represents the alignment of a viewport.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub struct Alignment {
     pub horizontal: HorizontalAlignment,
@@ -305,6 +331,7 @@ pub struct Alignment {
 }
 
 impl Alignment {
+    /// Shortcut for `(center, center)`.
     #[inline]
     pub fn center() -> Alignment {
         Alignment {
@@ -313,6 +340,7 @@ impl Alignment {
         }
     }
 
+    /// Shortcut for `(center, bottom)`.
     #[inline]
     pub fn bottom() -> Alignment {
         Alignment {
