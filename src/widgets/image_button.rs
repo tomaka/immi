@@ -17,12 +17,26 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, normal_image: &D::ImageR
                                  hovered_image: &D::ImageResource, active_image: &D::ImageResource)
                                  -> Interaction
 {
-    if draw.is_cursor_hovering() {
-        draw.draw().draw_image(hovered_image, draw.matrix());
+    let widget_id = draw.reserve_widget_id();
 
-        if draw.cursor_was_released() {
-            Interaction::Clicked
+    if draw.is_cursor_hovering() {
+        if Some(widget_id.clone()) == draw.get_active_widget() {
+            draw.draw().draw_image(active_image, draw.matrix());
+
+            if draw.cursor_was_released() {
+                draw.clear_active_widget();
+                Interaction::Clicked
+            } else {
+                Interaction::None
+            }
+
+        } else if draw.cursor_was_pressed() {
+            draw.draw().draw_image(active_image, draw.matrix());
+            draw.write_active_widget(widget_id.clone());
+            Interaction::None
+
         } else {
+            draw.draw().draw_image(hovered_image, draw.matrix());
             Interaction::None
         }
 

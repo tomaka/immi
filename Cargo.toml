@@ -4,5 +4,4 @@ version = "0.1.0"
 authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
 
 [dependencies]
-lazy_static = "0.1"
 time = "0.1"

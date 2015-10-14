@@ -1,47 +1,62 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::MutexGuard;
+use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::Ordering;
 
 use time;
 
 use Draw;
 use Matrix;
+use WidgetId;
 
 use animations::Animation;
 
 /// Contains everything required to draw a widget.
 pub struct DrawContext<'a, D: ?Sized + Draw + 'a> {
+    shared: Arc<Shared<'a, D>>,
+
     matrix: Matrix,
     width: f32,
     height: f32,
-    draw: Arc<Mutex<&'a mut D>>,
 
     cursor: Option<[f32; 2]>,
     cursor_was_pressed: bool,
     cursor_was_released: bool,
 }
 
+struct Shared<'a, D: ?Sized + Draw + 'a> {
+    draw: Mutex<&'a mut D>,
+    active_widget: Mutex<&'a mut Option<WidgetId>>,
+    next_widget_id: AtomicUsize,
+}
+
 impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     // TODO: change this
     /// UNSTABLE, WILL BE CHANGED
     pub fn start(width: f32, height: f32, draw: &'a mut D, cursor: Option<[f32; 2]>,
-                 cursor_was_pressed: bool, cursor_was_released: bool) -> DrawContext<'a, D>
+                 cursor_was_pressed: bool, cursor_was_released: bool,
+                 active_widget: &'a mut Option<WidgetId>) -> DrawContext<'a, D>
     {
         DrawContext {
             matrix: Matrix::identity(),
             width: width,
             height: height,
-            draw: Arc::new(Mutex::new(draw)),
             cursor: cursor,
             cursor_was_pressed: cursor_was_pressed,
             cursor_was_released: cursor_was_released,
+            shared: Arc::new(Shared {
+                draw: Mutex::new(draw),
+                active_widget: Mutex::new(active_widget),
+                next_widget_id: AtomicUsize::new(1),
+            }),
         }
     }
 
     /// UNSTABLE. Obtains the underlying `draw` object.
     #[inline]
     pub fn draw(&self) -> MutexGuard<&'a mut D> {
-        self.draw.lock().unwrap()
+        self.shared.draw.lock().unwrap()
     }
 
     #[inline]
@@ -50,8 +65,33 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     }
 
     #[inline]
+    pub fn cursor_was_pressed(&self) -> bool {
+        self.cursor_was_pressed
+    }
+
+    #[inline]
     pub fn cursor_was_released(&self) -> bool {
         self.cursor_was_released
+    }
+
+    #[inline]
+    pub fn reserve_widget_id(&self) -> WidgetId {
+        self.shared.next_widget_id.fetch_add(1, Ordering::Relaxed).into()
+    }
+
+    #[inline]
+    pub fn get_active_widget(&self) -> Option<WidgetId> {
+        self.shared.active_widget.lock().unwrap().clone()
+    }
+
+    #[inline]
+    pub fn write_active_widget(&self, id: WidgetId) {
+        **self.shared.active_widget.lock().unwrap() = Some(id);
+    }
+
+    #[inline]
+    pub fn clear_active_widget(&self) {
+        **self.shared.active_widget.lock().unwrap() = None;
     }
 
     /// Returns true if the cursor is currently hovering this part of the viewport.
@@ -192,7 +232,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             matrix: self.matrix * Matrix::translate(0.0, y) * Matrix::scale_wh(1.0, scale),
             width: self.width,
             height: self.height * scale,
-            draw: self.draw.clone(),
+            shared: self.shared.clone(),
             cursor: self.cursor,
             cursor_was_pressed: self.cursor_was_pressed,
             cursor_was_released: self.cursor_was_released,
@@ -218,7 +258,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             matrix: self.matrix * Matrix::translate(x, 0.0) * Matrix::scale_wh(scale, 1.0),
             width: self.width * scale,
             height: self.height,
-            draw: self.draw.clone(),
+            shared: self.shared.clone(),
             cursor: self.cursor,
             cursor_was_pressed: self.cursor_was_pressed,
             cursor_was_released: self.cursor_was_released,
@@ -298,7 +338,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
                 matrix: self.matrix * pos_matrix * scale_matrix,
                 width: new_width,
                 height: new_height,
-                draw: self.draw.clone(),
+                shared: self.shared.clone(),
                 cursor: self.cursor,
                 cursor_was_pressed: self.cursor_was_pressed,
                 cursor_was_released: self.cursor_was_released,
@@ -326,7 +366,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
                                 * Matrix::scale_wh(width_percent, height_percent),
             width: self.width * width_percent,
             height: self.height * height_percent,
-            draw: self.draw.clone(),
+            shared: self.shared.clone(),
             cursor: self.cursor,
             cursor_was_pressed: self.cursor_was_pressed,
             cursor_was_released: self.cursor_was_released,
@@ -345,7 +385,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             matrix: self.matrix * Matrix::translate(x, y),
             width: self.width,
             height: self.height,
-            draw: self.draw.clone(),
+            shared: self.shared.clone(),
             cursor: self.cursor,
             cursor_was_pressed: self.cursor_was_pressed,
             cursor_was_released: self.cursor_was_released,
@@ -359,7 +399,7 @@ impl<'a, D: ?Sized + Draw + 'a> Clone for DrawContext<'a, D> {
             matrix: self.matrix.clone(),
             width: self.width.clone(),
             height: self.height.clone(),
-            draw: self.draw.clone(),
+            shared: self.shared.clone(),
             cursor: self.cursor.clone(),
             cursor_was_pressed: self.cursor_was_pressed,
             cursor_was_released: self.cursor_was_released,
