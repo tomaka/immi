@@ -44,6 +44,30 @@ impl Matrix {
             [ x,   y ],
         ])
     }
+
+    /// Builds a matrix that will rotate the object.
+    #[inline]
+    pub fn rotate(radians: f32) -> Matrix {
+        let cos = radians.cos();
+        let sin = radians.sin();
+
+        Matrix([
+            [ cos, sin],
+            [-sin, cos],
+            [ 0.0, 0.0],
+        ])
+    }
+
+    #[inline]
+    pub fn skew_x(radians: f32) -> Matrix {
+        let tan = radians.tan();
+
+        Matrix([
+            [1.0, 0.0],
+            [tan, 1.0],
+            [0.0, 0.0],
+        ])
+    }
 }
 
 impl ops::Mul for Matrix {

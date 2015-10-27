@@ -42,3 +42,13 @@ mod matrix;
 
 pub mod animations;
 pub mod widgets;
+
+/// Contains some persistent infos about the UI.
+#[derive(Clone, Default, PartialEq, Eq)]
+pub struct UiState {
+    /// Identifier of the widget that is currently active.
+    ///
+    /// For example if you maintain the left button of the mouse, the element under will be active.
+    /// If you then move your mouse somewhere else, the active element doesn't change.
+    pub active_widget: Option<WidgetId>,
+}
