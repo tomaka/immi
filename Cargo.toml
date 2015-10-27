@@ -2,6 +2,8 @@
 name = "immi"
 version = "0.1.0"
 authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
+documentation = "http://tomaka.github.io/immi/immi/index.html"
+readme = "README.md"
 
 [dependencies]
 time = "0.1"
