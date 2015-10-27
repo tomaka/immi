@@ -52,7 +52,7 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, empty: &D::ImageResource
     // Drawing the top-left triangle of each rectangle.
     for num in 0 .. 4 {
         let local_percent = (progress - 0.25 * num as f32) / 0.125;
-        let local_percent = if local_percent <= 0.0 { 0.0 } else { local_percent };
+        if local_percent <= 0.0 { continue; }
         let local_percent = if local_percent >= 1.0 { 1.0 } else { local_percent };
 
         let local_matrix = Matrix::translate(1.0, 1.0);
@@ -73,7 +73,7 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, empty: &D::ImageResource
     // Drawing the bottom-right image of each rectangle.
     for num in 0 .. 4 {
         let local_percent = (progress - 0.125 - 0.25 * num as f32) / 0.125;
-        let local_percent = if local_percent <= 0.0 { 0.0 } else { local_percent };
+        if local_percent <= 0.0 { continue; }
         let local_percent = if local_percent >= 1.0 { 1.0 } else { local_percent };
 
         let local_matrix = Matrix::translate(1.0, 1.0);
