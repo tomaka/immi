@@ -37,7 +37,8 @@ pub trait Draw {
     ///
     /// This function should not try to preseve the aspect ratio of the text. This is handled by
     /// the rest of the library.
-    fn draw_text(&mut self, font: &Self::FontResource, matrix: &Matrix, text: &str);
+    fn draw_text(&mut self, font: &Self::FontResource, matrix: &Matrix, text: &str,
+                 rgb_color: [f32; 3]);
 
     /// Given a font and a text, this function returns the width the text would have on the screen
     /// divided by a EM.
