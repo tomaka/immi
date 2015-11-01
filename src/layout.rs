@@ -461,6 +461,60 @@ impl Alignment {
             vertical: VerticalAlignment::Top,
         }
     }
+
+    /// Shortcut for `(right, center)`.
+    #[inline]
+    pub fn right() -> Alignment {
+        Alignment {
+            horizontal: HorizontalAlignment::Right,
+            vertical: VerticalAlignment::Center,
+        }
+    }
+
+    /// Shortcut for `(left, center)`.
+    #[inline]
+    pub fn left() -> Alignment {
+        Alignment {
+            horizontal: HorizontalAlignment::Left,
+            vertical: VerticalAlignment::Center,
+        }
+    }
+
+    /// Shortcut for `(left, top)`.
+    #[inline]
+    pub fn top_left() -> Alignment {
+        Alignment {
+            horizontal: HorizontalAlignment::Left,
+            vertical: VerticalAlignment::Top,
+        }
+    }
+
+    /// Shortcut for `(right, top)`.
+    #[inline]
+    pub fn top_right() -> Alignment {
+        Alignment {
+            horizontal: HorizontalAlignment::Right,
+            vertical: VerticalAlignment::Top,
+        }
+    }
+
+    /// Shortcut for `(right, bottom)`.
+    #[inline]
+    pub fn bottom_right() -> Alignment {
+        Alignment {
+            horizontal: HorizontalAlignment::Right,
+            vertical: VerticalAlignment::Bottom,
+        }
+    }
+
+    /// Shortcut for `(left, bottom)`.
+    #[inline]
+    pub fn bottom_left() -> Alignment {
+        Alignment {
+            horizontal: HorizontalAlignment::Left,
+            vertical: VerticalAlignment::Bottom,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
