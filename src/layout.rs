@@ -432,6 +432,15 @@ impl Alignment {
             vertical: VerticalAlignment::Bottom,
         }
     }
+
+    /// Shortcut for `(center, top)`.
+    #[inline]
+    pub fn top() -> Alignment {
+        Alignment {
+            horizontal: HorizontalAlignment::Center,
+            vertical: VerticalAlignment::Top,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
