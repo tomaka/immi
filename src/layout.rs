@@ -173,6 +173,26 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             .absolute(1.0 - right, 1.0 - bottom, &Alignment::center())
     }
 
+    /// Builds a new draw context containing a subpart of the current context, but with a margin.
+    ///
+    /// If the width of the surface is inferior to the height then the margin is expressed as a
+    /// percentage of the width, and vice versa.
+    ///
+    /// This guarantees that the size in pixels of the margin is the same if you pass the same
+    /// values.
+    #[inline]
+    pub fn uniform_margin(&self, top: f32, right: f32, bottom: f32, left: f32)
+                          -> DrawContext<'a, D>
+    {
+        let wph = self.width_per_height();
+        let wph = if wph < 1.0 { 1.0 } else { wph };
+
+        let hpw = 1.0 / self.width_per_height();
+        let hpw = if hpw < 1.0 { 1.0 } else { hpw };
+
+        self.margin(top / hpw, right / wph, bottom / hpw, left / wph)
+    }
+
     /// Modifies the layout so that the given width per height ratio is respected. The size of the
     /// new viewport will always been equal or small to the existing viewport.
     ///
