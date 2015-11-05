@@ -20,9 +20,6 @@ use DrawContext;
 ///
 /// Panicks if `top_percent + bottom_percent > 1.0` or `left_percent + right_percent > 1.0`.
 ///
-/// Panicks if the image cannot be represented correctly because `left_border_percent` is too
-/// large.
-///
 pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, left_border_percent: f32,
                               image_name: &D::ImageResource, top_percent: f32, right_percent: f32,
                               bottom_percent: f32, left_percent: f32)
@@ -35,9 +32,6 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, left_border_percent: f32,
     let top_border_percent = left_border_percent * top_percent / left_percent * draw.width_per_height() / image_width_per_height;
     let right_border_percent = top_border_percent * right_percent / top_percent / draw.width_per_height() * image_width_per_height;
     let bottom_border_percent = right_border_percent * bottom_percent / right_percent * draw.width_per_height() / image_width_per_height;
-
-    assert!(top_border_percent + bottom_border_percent <= 1.0);
-    assert!(left_border_percent + right_border_percent <= 1.0);
 
     // top left
     {
