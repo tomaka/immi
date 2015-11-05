@@ -2,6 +2,27 @@ use Alignment;
 use Draw;
 use DrawContext;
 
+/// Draws a 9-parts image.
+///
+/// The image is split into 9 parts: the four corners, the four borders, and the middle. The
+/// dimensions are given by the `top_percent`, `right_percent`, `bottom_percent` and
+/// `left_percent` parameters.
+///
+/// The whole context viewport is then filled with this image. The corners will always keep their
+/// aspect ratio, the top and bottom borders will be stretched horizontally, the left and
+/// right borders will be stretched vertically, and the middle will be stretched.
+///
+/// The `left_border_percent` parameter is used to determine the percentage of the viewport that
+/// should be occupied by the left border of the image. The order borders are automatically
+/// calculated by maintaining the correct aspect ratio.
+///
+/// # Panic
+///
+/// Panicks if `top_percent + bottom_percent > 1.0` or `left_percent + right_percent > 1.0`.
+///
+/// Panicks if the image cannot be represented correctly because `left_border_percent` is too
+/// large.
+///
 pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, left_border_percent: f32,
                               image_name: &D::ImageResource, top_percent: f32, right_percent: f32,
                               bottom_percent: f32, left_percent: f32)
