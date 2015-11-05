@@ -22,11 +22,27 @@ pub trait Draw {
     ///
     /// This function should not try to preseve the aspect ratio of the image. This is handled by
     /// the rest of the library.
+    #[inline]
     fn draw_image(&mut self, name: &Self::ImageResource, matrix: &Matrix) {
-        self.draw_triangle(name, matrix, [[0.0, 1.0], [0.0, 0.0], [1.0, 1.0]]);
+        self.draw_image_uv(name, matrix, [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0])
+    }
+
+    /// Draws an image that covers the whole surface (from `-1.0` to `1.0` both horizontally and
+    /// vertically), but multiplied by the matrix.
+    ///
+    /// This function should not try to preseve the aspect ratio of the image. This is handled by
+    /// the rest of the library.
+    ///
+    /// Contrary to `draw_image`, this library allows one to specify UV coordinates of the four
+    /// borders.
+    #[inline]
+    fn draw_image_uv(&mut self, name: &Self::ImageResource, matrix: &Matrix, top_left: [f32; 2],
+                     top_right: [f32; 2], bottom_right: [f32; 2], bottom_left: [f32; 2])
+    {
+        self.draw_triangle(name, matrix, [top_left, bottom_left, top_right]);
 
         let invert = Matrix::scale(-1.0);
-        self.draw_triangle(name, &(*matrix * invert), [[1.0, 0.0], [1.0, 1.0], [0.0, 0.0]]);
+        self.draw_triangle(name, &(*matrix * invert), [bottom_right, top_right, bottom_left]);
     }
 
     /// Given an image, this functions returns its width divided by its height.
