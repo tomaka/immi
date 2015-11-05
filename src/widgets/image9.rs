@@ -30,9 +30,11 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, left_border_percent: f32,
     assert!(top_percent + bottom_percent <= 1.0);
     assert!(left_percent + right_percent <= 1.0);
 
-    let top_border_percent = left_border_percent * top_percent / left_percent / draw.width_per_height();
-    let right_border_percent = top_border_percent * right_percent / top_percent * draw.width_per_height();
-    let bottom_border_percent = right_border_percent * bottom_percent / right_percent / draw.width_per_height();
+    let image_width_per_height = draw.draw().get_image_width_per_height(image_name);
+
+    let top_border_percent = left_border_percent * top_percent / left_percent * draw.width_per_height() / image_width_per_height;
+    let right_border_percent = top_border_percent * right_percent / top_percent / draw.width_per_height() * image_width_per_height;
+    let bottom_border_percent = right_border_percent * bottom_percent / right_percent * draw.width_per_height() / image_width_per_height;
 
     assert!(top_border_percent + bottom_border_percent <= 1.0);
     assert!(left_border_percent + right_border_percent <= 1.0);
