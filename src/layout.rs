@@ -169,8 +169,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     #[inline]
     pub fn margin(&self, top: f32, right: f32, bottom: f32, left: f32) -> DrawContext<'a, D> {
         // TODO: could be more efficient
-        self.absolute(1.0 - left, 1.0 - top, &Alignment::center())
-            .absolute(1.0 - right, 1.0 - bottom, &Alignment::center())
+        self.absolute(1.0 - left, 1.0 - top, &Alignment::bottom_right())
+            .absolute(1.0 - right, 1.0 - bottom, &Alignment::top_left())
     }
 
     /// Builds a new draw context containing a subpart of the current context, but with a margin.
