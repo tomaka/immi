@@ -4,6 +4,7 @@ pub mod image9;
 pub mod image_button;
 pub mod image9_button;
 pub mod label;
+pub mod progress_bar;
 
 /// Whether the cursor clicked on the widget.
 #[derive(Debug, Clone, PartialEq, Eq)]
