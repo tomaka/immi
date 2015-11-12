@@ -20,6 +20,8 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, normal_image: &D::ImageR
     let widget_id = draw.reserve_widget_id();
 
     if draw.is_cursor_hovering() {
+        draw.set_cursor_hovered_widget();
+
         if Some(widget_id.clone()) == draw.get_active_widget() {
             draw.draw().draw_image(active_image, draw.matrix());
 

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::MutexGuard;
+use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 
@@ -14,13 +15,19 @@ use animations::Animation;
 
 /// Contains everything required to draw a widget.
 pub struct DrawContext<'a, D: ?Sized + Draw + 'a> {
+    /// Data that is shared between the draw context and all its children.
     shared: Arc<Shared<'a, D>>,
 
     matrix: Matrix,
     width: f32,
     height: f32,
 
+    /// Position of the cursor between `-1.0` and `1.0`, where -1.0 is the left or bottom, and 1.0
+    /// is the right or top of the window.
+    ///
+    /// This is the position of the cursor in the original viewport, not in the *current* viewport.
     cursor: Option<[f32; 2]>,
+
     cursor_was_pressed: bool,
     cursor_was_released: bool,
 }
@@ -29,6 +36,9 @@ struct Shared<'a, D: ?Sized + Draw + 'a> {
     draw: Mutex<&'a mut D>,
     active_widget: Mutex<&'a mut Option<WidgetId>>,
     next_widget_id: AtomicUsize,
+
+    /// True if the cursor is over an element of the UI.
+    cursor_hovered_widget: AtomicBool,
 }
 
 impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
@@ -49,6 +59,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
                 draw: Mutex::new(draw),
                 active_widget: Mutex::new(active_widget),
                 next_widget_id: AtomicUsize::new(1),
+                cursor_hovered_widget: AtomicBool::new(false),
             }),
         }
     }
@@ -72,6 +83,22 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     #[inline]
     pub fn cursor_was_released(&self) -> bool {
         self.cursor_was_released
+    }
+
+    /// Returns true if one of the elements that has been drawn is under the mouse cursor.
+    ///
+    /// When you create the context, this value is initally false. Each widget that you draw can
+    /// call `set_cursor_hovered_widget` to pass this value to true.
+    #[inline]
+    pub fn cursor_hovered_widget(&self) -> bool {
+        self.shared.cursor_hovered_widget.load(Ordering::Relaxed)
+    }
+
+    /// Signals the context that the cursor is currently hovering it. This can be later retreived
+    /// with `cursor_hovered_widget()`.
+    #[inline]
+    pub fn set_cursor_hovered_widget(&self) {
+        self.shared.cursor_hovered_widget.store(true, Ordering::Relaxed);
     }
 
     #[inline]

@@ -10,5 +10,11 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageResour
 }
 
 pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageResource) {
+    if !draw.cursor_hovered_widget() {
+        if draw.is_cursor_hovering() {
+            draw.set_cursor_hovered_widget();
+        }
+    }
+
     draw.draw().draw_image(image_name, draw.matrix());
 }

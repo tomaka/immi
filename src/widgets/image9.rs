@@ -98,4 +98,10 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, left_border_percent: f32,
                                   [1.0 - top_percent, 1.0 - right_percent], [1.0 - top_percent, bottom_percent],
                                   [left_percent, bottom_percent]);
     }
+    
+    if !draw.cursor_hovered_widget() {
+        if draw.is_cursor_hovering() {
+            draw.set_cursor_hovered_widget();
+        }
+    }
 }
