@@ -196,8 +196,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     #[inline]
     pub fn margin(&self, top: f32, right: f32, bottom: f32, left: f32) -> DrawContext<'a, D> {
         // TODO: could be more efficient
-        self.absolute(1.0 - left, 1.0 - top, &Alignment::bottom_right())
-            .absolute(1.0 - right, 1.0 - bottom, &Alignment::top_left())
+        self.rescale(1.0 - left, 1.0 - top, &Alignment::bottom_right())
+            .rescale(1.0 - right, 1.0 - bottom, &Alignment::top_left())
     }
 
     /// Builds a new draw context containing a subpart of the current context, but with a margin.
@@ -393,8 +393,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         }).collect()
     }
 
-    pub fn absolute(&self, width_percent: f32, height_percent: f32, alignment: &Alignment)
-                    -> DrawContext<'a, D>
+    pub fn rescale(&self, width_percent: f32, height_percent: f32, alignment: &Alignment)
+                   -> DrawContext<'a, D>
     {
         let x = match alignment.horizontal {
             HorizontalAlignment::Center => 0.0,
