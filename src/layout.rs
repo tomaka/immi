@@ -438,6 +438,24 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
             cursor_was_released: self.cursor_was_released,
         }
     }
+
+    pub fn zoom_animation<A>(&self, animation: A, start_time: u64, duration_ns: u64,
+                             initial_zoom: f32) -> DrawContext<'a, D> where A: Animation
+    {
+        let now = time::precise_time_ns();
+
+        let s = animation.calculate(now, start_time, duration_ns, initial_zoom - 1.0) + 1.0;
+
+        DrawContext {
+            matrix: self.matrix * Matrix::scale(s),
+            width: self.width,
+            height: self.height,
+            shared: self.shared.clone(),
+            cursor: self.cursor,
+            cursor_was_pressed: self.cursor_was_pressed,
+            cursor_was_released: self.cursor_was_released,
+        }
+    }
 }
 
 impl<'a, D: ?Sized + Draw + 'a> Clone for DrawContext<'a, D> {
