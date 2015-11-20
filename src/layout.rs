@@ -75,11 +75,17 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         &self.matrix
     }
 
+    /// Returns true if the cursor went from up to down in the current frame.
+    ///
+    /// This is the value that was passed when constructing the context.
     #[inline]
     pub fn cursor_was_pressed(&self) -> bool {
         self.cursor_was_pressed
     }
 
+    /// Returns true if the cursor went from down to up in the current frame.
+    ///
+    /// This is the value that was passed when constructing the context.
     #[inline]
     pub fn cursor_was_released(&self) -> bool {
         self.cursor_was_released
@@ -192,7 +198,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
 
     /// Builds a new draw context containing a subpart of the current context, but with a margin.
     ///
-    /// The margin is expressed in percentage of the surface.
+    /// The margin is expressed in percentage of the surface (between 0.0 and 1.0).
     #[inline]
     pub fn margin(&self, top: f32, right: f32, bottom: f32, left: f32) -> DrawContext<'a, D> {
         // TODO: could be more efficient
@@ -350,6 +356,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         self.split_weights(weights, false)
     }
 
+    /// Internal implementation of the split functions.
     // TODO: don't return a Vec
     fn split_weights<I>(&self, weights: I, vertical: bool) -> Vec<DrawContext<'a, D>>
                         where I: ExactSizeIterator<Item = f32> + Clone
@@ -393,6 +400,13 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         }).collect()
     }
 
+    /// Changes the dimensions of the context.
+    ///
+    /// The dimensions are a percentage of the current dimensions. For example to divide the width
+    /// by two, you need to pass `0.5`.
+    ///
+    /// The alignment is used to determine the position of the newly-created context relative to
+    /// the old one.
     pub fn rescale(&self, width_percent: f32, height_percent: f32, alignment: &Alignment)
                    -> DrawContext<'a, D>
     {
@@ -425,8 +439,8 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     {
         let now = time::precise_time_ns();
 
-        let x = animation.calculate(now, start_time, duration_ns, initial_pos[0]);
-        let y = animation.calculate(now, start_time, duration_ns, initial_pos[1]);
+        let x = (1.0 - animation.calculate(now, start_time, duration_ns)) * initial_pos[0];
+        let y = (1.0 - animation.calculate(now, start_time, duration_ns)) * initial_pos[1];
 
         DrawContext {
             matrix: self.matrix * Matrix::translate(x, y),
@@ -444,7 +458,7 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
     {
         let now = time::precise_time_ns();
 
-        let s = animation.calculate(now, start_time, duration_ns, initial_zoom - 1.0) + 1.0;
+        let s = (1.0 - animation.calculate(now, start_time, duration_ns)) * (initial_zoom - 1.0) + 1.0;
 
         DrawContext {
             matrix: self.matrix * Matrix::scale(s),
@@ -473,9 +487,11 @@ impl<'a, D: ?Sized + Draw + 'a> Clone for DrawContext<'a, D> {
 }
 
 /// Represents the alignment of a viewport.
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Alignment {
+    /// The horizontal alignment.
     pub horizontal: HorizontalAlignment,
+    /// The vertical alignment.
     pub vertical: VerticalAlignment,
 }
 
@@ -562,30 +578,24 @@ impl Alignment {
     }
 }
 
+/// Describes a horizontal alignment.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum HorizontalAlignment {
+    /// Align in the middle.
     Center,
+    /// Align left.
     Left,
+    /// Align right.
     Right,
 }
 
-impl Default for HorizontalAlignment {
-    #[inline]
-    fn default() -> HorizontalAlignment {
-        HorizontalAlignment::Center
-    }
-}
-
+/// Describes a vertical alignment.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum VerticalAlignment {
+    /// Align in the middle.
     Center,
+    /// Align top.
     Top,
+    /// Align bottom.
     Bottom,
-}
-
-impl Default for VerticalAlignment {
-    #[inline]
-    fn default() -> VerticalAlignment {
-        VerticalAlignment::Center
-    }
 }

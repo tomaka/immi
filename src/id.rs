@@ -1,3 +1,5 @@
+
+/// Represents an identifier of a widget. See the documentation of `DrawContext`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WidgetId(usize);
 

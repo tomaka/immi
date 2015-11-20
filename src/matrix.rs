@@ -58,6 +58,7 @@ impl Matrix {
         ])
     }
 
+    /// Builds a matrix that will skew the x coordinate by a certain angle.
     #[inline]
     pub fn skew_x(radians: f32) -> Matrix {
         let tan = radians.tan();
