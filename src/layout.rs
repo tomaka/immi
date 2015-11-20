@@ -12,6 +12,7 @@ use Matrix;
 use WidgetId;
 
 use animations::Animation;
+use animations::Interpolation;
 
 /// Contains everything required to draw a widget.
 pub struct DrawContext<'a, D: ?Sized + Draw + 'a> {
@@ -434,34 +435,17 @@ impl<'a, D: ?Sized + Draw + 'a> DrawContext<'a, D> {
         }
     }
 
-    pub fn animate<A>(&self, animation: A, start_time: u64, duration_ns: u64,
-                      initial_pos: [f32; 2]) -> DrawContext<'a, D> where A: Animation
+    pub fn animate<A, I>(&self, animation: A, interpolation: I, start_time: u64,
+                         duration_ns: u64) -> DrawContext<'a, D>
+        where A: Animation, I: Interpolation
     {
         let now = time::precise_time_ns();
 
-        let x = (1.0 - animation.calculate(now, start_time, duration_ns)) * initial_pos[0];
-        let y = (1.0 - animation.calculate(now, start_time, duration_ns)) * initial_pos[1];
+        let interpolation = interpolation.calculate(now, start_time, duration_ns);
+        let matrix = animation.animate(interpolation);
 
         DrawContext {
-            matrix: self.matrix * Matrix::translate(x, y),
-            width: self.width,
-            height: self.height,
-            shared: self.shared.clone(),
-            cursor: self.cursor,
-            cursor_was_pressed: self.cursor_was_pressed,
-            cursor_was_released: self.cursor_was_released,
-        }
-    }
-
-    pub fn zoom_animation<A>(&self, animation: A, start_time: u64, duration_ns: u64,
-                             initial_zoom: f32) -> DrawContext<'a, D> where A: Animation
-    {
-        let now = time::precise_time_ns();
-
-        let s = (1.0 - animation.calculate(now, start_time, duration_ns)) * (initial_zoom - 1.0) + 1.0;
-
-        DrawContext {
-            matrix: self.matrix * Matrix::scale(s),
+            matrix: self.matrix * matrix,
             width: self.width,
             height: self.height,
             shared: self.shared.clone(),
