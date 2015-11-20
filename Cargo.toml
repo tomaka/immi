@@ -7,7 +7,7 @@ repository = "https://github.com/tomaka/immi"
 readme = "README.md"
 license = "MIT"
 description = "Immediate mode user interface toolkit."
-keywords = ["ui", "gamedev", "user", "interface", "immediate", "mode"]
+keywords = ["ui", "gamedev", "user", "interface"]
 
 [dependencies]
 time = "0.1"
