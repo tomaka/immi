@@ -31,6 +31,42 @@
 //!   `DrawContext` by reference and your custom UI-state struct by mutable reference.
 //! - The function draws the various elements and updates the UI state.
 //!
+//! ## Example
+//!
+//! ```rust
+//! // Object that will allow you to draw the UI.
+//! struct MyDrawer;
+//! impl immi::Draw for MyDrawer {
+//!     type ImageResource = str;
+//!     type FontResource = str;
+//! 
+//!     fn draw_triangle(&mut self, _: &str, _: &immi::Matrix, _: [[f32; 2]; 3]) {}
+//!     fn get_image_width_per_height(&mut self, _: &str) -> f32 { 1.0 }
+//!     fn draw_text(&mut self, _: &str, _: &immi::Matrix, _: &str, _: [f32; 3]) { }
+//!     fn get_text_width_per_em(&mut self, _: &str, _: &str) -> f32 { 1.0 }
+//! }
+//! 
+//! struct MyUiState {
+//!     widget1_text: String,
+//!     checkbox: bool,
+//! }
+//! 
+//! fn draw_ui(ctxt: &immi::DrawContext<MyDrawer>, ui_state: &mut MyUiState) {
+//!     // ...
+//! }
+//! 
+//! let mut immi_state = immi::UiState::default();
+//! let mut my_state = MyUiState { widget1_text: String::new(), checkbox: false };
+//! let mut drawer = MyDrawer;
+//! 
+//! loop {
+//!     let ui_context = immi::draw(&mut immi_state);
+//!     let ui_context = ui_context.draw(1024.0, 768.0, &mut drawer, None, false, false);
+//!     draw_ui(&ui_context, &mut my_state);
+//! # break;
+//! }
+//! ```
+//!
 //! # Drawing
 //!
 //! Once you have a `DrawContext` you can start drawing your user interface.
