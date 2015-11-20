@@ -1,4 +1,35 @@
+//! # Immediate mode UI and general application architecture
 //!
+//! The principle of immediate more UI is that the position and dimensions of the UI elements are
+//! calculated at each frame. The current state of the user interface (for example the content of
+//! text boxes, if there are multiple tabs which one is the current one, etc.) is not stored within
+//! widgets themselves, but in an external structure.
+//! 
+//! Here is how you design your code in order to work with immi:
+//! 
+//! - You define a custom structure that describes the state of your user interface.
+//! - You define a type that implements the `immi::Draw` trait.
+//! - You define a function whose purpose is to draw your user interface. Usually you want to
+//!   create one function for each part of the UI instead, and call all of them in a main function.
+//! 
+//! There are only two objects that you store persistently:
+//! 
+//! - An instance of your custom struct that describes your UI.
+//! - An instance of `immi::UiState`.
+//! 
+//! These two objects describe your user interface. They are the only state that is required.
+//! 
+//! At each frame, when it is time to draw your UI, you:
+//! 
+//! - Call `immi::draw` and pass a reference to your `immi::UiState`. You will get
+//!   a `SharedDrawContext`. This object represents a context for drawing the entirety of your UI.
+//! - Sometimes you need to share information between multiple user interfaces. For example in a
+//!   game you sometimes have a main UI, but also small in-game overlays. A shared draw context
+//!   shares data between all of these. Call `draw()` on your `SharedDrawContext` in order to
+//!   obtain a `DrawContext`. You will need to pass your drawing object.
+//! - Once you have a `DrawContext`, call your custom UI-drawing function, and pass the
+//!   `DrawContext` by reference and your custom UI-state struct by mutable reference.
+//! - The function draws the various elements and updates the UI state.
 //!
 //! # Drawing
 //!
@@ -29,8 +60,10 @@ extern crate time;
 
 pub use draw::Draw;
 pub use id::WidgetId;
+pub use layout::draw;
 pub use layout::Alignment;
 pub use layout::DrawContext;
+pub use layout::SharedDrawContext;
 pub use layout::HorizontalAlignment;
 pub use layout::VerticalAlignment;
 pub use matrix::Matrix;
