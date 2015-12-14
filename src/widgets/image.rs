@@ -18,3 +18,11 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageRes
 
     draw.draw().draw_image(image_name, draw.matrix());
 }
+
+/// Increases the size of the image until it covers the context, and draws it.
+pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageResource,
+                              alignment: &Alignment)
+{
+    let ratio = draw.draw().get_image_width_per_height(image_name);
+    stretch(&draw.enforce_aspect_ratio_upscale(ratio, alignment), image_name)
+}
