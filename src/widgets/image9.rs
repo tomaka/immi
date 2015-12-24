@@ -94,8 +94,8 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, left_border_percent: f32,
         let ctxt = draw.rescale(1.0 - left_border_percent - right_border_percent,
                                  1.0 - top_border_percent - bottom_border_percent,
                                  &Alignment::center());
-        draw.draw().draw_image_uv(image_name, ctxt.matrix(), [left_percent, 1.0 - right_percent],
-                                  [1.0 - top_percent, 1.0 - right_percent], [1.0 - top_percent, bottom_percent],
+        draw.draw().draw_image_uv(image_name, ctxt.matrix(), [left_percent, 1.0 - top_percent],
+                                  [1.0 - right_percent, 1.0 - top_percent], [1.0 - right_percent, bottom_percent],
                                   [left_percent, bottom_percent]);
     }
     
