@@ -21,6 +21,7 @@ pub fn draw(ui_state: &mut UiState) -> SharedDrawContext {
         shared1: Arc::new(Shared1 {
             ui_state: Mutex::new(ui_state),
             next_widget_id: AtomicUsize::new(1),
+            cursor_hovered_widget: AtomicBool::new(false),
         })
     }
 }
@@ -49,11 +50,21 @@ impl<'a> SharedDrawContext<'a> {
             }),
         }
     }
+
+    /// Returns true if one of the elements that has been drawn is under the mouse cursor.
+    ///
+    /// When you create the context, this value is initally false. Each widget that you draw can
+    /// call `set_cursor_hovered_widget` to pass this value to true.
+    #[inline]
+    pub fn cursor_hovered_widget(&self) -> bool {
+        self.shared1.cursor_hovered_widget.load(Ordering::Relaxed)
+    }
 }
 
 struct Shared1<'a> {
     ui_state: Mutex<&'a mut UiState>,
     next_widget_id: AtomicUsize,
+    cursor_hovered_widget: AtomicBool,
 }
 
 /// Contains everything required to draw a widget.
@@ -123,6 +134,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// with `cursor_hovered_widget()`.
     #[inline]
     pub fn set_cursor_hovered_widget(&self) {
+        self.shared1.cursor_hovered_widget.store(true, Ordering::Relaxed);
         self.shared2.cursor_hovered_widget.store(true, Ordering::Relaxed);
     }
 
