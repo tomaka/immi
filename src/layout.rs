@@ -267,9 +267,17 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// The margin is expressed in percentage of the surface (between 0.0 and 1.0).
     #[inline]
     pub fn margin(&self, top: f32, right: f32, bottom: f32, left: f32) -> DrawContext<'a, 'b, D> {
-        // TODO: could be more efficient
-        self.rescale(1.0 - left, 1.0 - top, &Alignment::bottom_right())
-            .rescale(1.0 - right, 1.0 - bottom, &Alignment::top_left())
+        DrawContext {
+            matrix: self.matrix * Matrix::translate(left - right, bottom - top)
+                                * Matrix::scale_wh(1.0 - right - left, 1.0 - top - bottom),
+            width: self.width * (1.0 - left - right),
+            height: self.height * (1.0 - top - bottom),
+            shared1: self.shared1.clone(),
+            shared2: self.shared2.clone(),
+            cursor: self.cursor,
+            cursor_was_pressed: self.cursor_was_pressed,
+            cursor_was_released: self.cursor_was_released,
+        }
     }
 
     /// Builds a new draw context containing a subpart of the current context, but with a margin.
