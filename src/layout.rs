@@ -221,6 +221,41 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
         }
     }
 
+    /// If the cursor is hovering the context, returns the coordinates of the cursor within the
+    /// context.
+    ///
+    /// The result is in OpenGL-like coordinates. In other words, (-1,-1) is the bottom-left hand
+    /// corner and (1,1) is the top-right hand corner.
+    pub fn cursor_hover_coordinates(&self) -> Option<[f32; 2]> {
+        // we compute the inverse of the matrix
+        let m = match self.matrix().invert() {
+            Some(m) => m,
+            None => return None,
+        };
+
+        // and use it to calculate the position of the cursor within the current context
+        let in_pos = match self.cursor {
+            Some(p) => p,
+            None => return None,
+        };
+
+        let output_mouse = [
+            in_pos[0]*m[0][0] + in_pos[1]*m[1][0] + m[2][0],
+            in_pos[0]*m[0][1] + in_pos[1]*m[1][1] + m[2][1],
+            in_pos[0]*m[0][2] + in_pos[1]*m[1][2] + m[2][2],
+        ];
+
+        let output_mouse = [output_mouse[0] / output_mouse[2], output_mouse[1] / output_mouse[2]];
+
+        if output_mouse[0] < -1.0 || output_mouse[0] > 1.0 || output_mouse[0] != output_mouse[0] ||
+           output_mouse[1] < -1.0 || output_mouse[1] > 1.0 || output_mouse[1] != output_mouse[1]
+        {
+            return None;
+        }
+
+        Some(output_mouse)
+    }
+
     /// Returns the ratio of the width of the surface divided by its height.
     #[inline]
     pub fn width_per_height(&self) -> f32 {

@@ -52,9 +52,9 @@ impl Matrix {
         let sin = radians.sin();
 
         Matrix([
-            [ cos, sin],
-            [-sin, cos],
-            [ 0.0, 0.0],
+            [cos, -sin],
+            [sin,  cos],
+            [0.0,  0.0],
         ])
     }
 
@@ -67,6 +67,30 @@ impl Matrix {
             [1.0, 0.0],
             [tan, 1.0],
             [0.0, 0.0],
+        ])
+    }
+
+    /// Builds the matrix's invert.
+    ///
+    /// Returns `None` if the determinant is zero, infinite or NaN.
+    pub fn invert(&self) -> Option<[[f32; 3]; 3]> {
+        let me = self.0;
+        let det = me[0][0] * me[1][1] - me[1][0] * me[0][1];
+
+        if det == 0.0 || det != det {
+            return None;
+        }
+
+        let det_inv = 1.0 / det;
+
+        Some([
+            [det_inv *  me[1][1], det_inv * -me[0][1], 0.0],
+            [det_inv * -me[1][0], det_inv *  me[0][0], 0.0],
+            [
+                det_inv * (me[1][0]*me[2][1]-me[2][0]*me[1][1]),
+                det_inv * (me[2][0]*me[0][1]-me[0][0]*me[2][1]),
+                det_inv * (me[0][0]*me[1][1]-me[1][0]*me[0][1])
+            ]
         ])
     }
 }
