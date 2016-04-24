@@ -1,6 +1,6 @@
 [package]
 name = "immi"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
 documentation = "http://tomaka.github.io/immi/immi/index.html"
 repository = "https://github.com/tomaka/immi"
@@ -8,6 +8,3 @@ readme = "README.md"
 license = "MIT"
 description = "Immediate mode user interface toolkit."
 keywords = ["ui", "gamedev", "user", "interface"]
-
-[dependencies]
-time = "0.1"
