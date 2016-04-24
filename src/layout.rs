@@ -4,8 +4,8 @@ use std::sync::MutexGuard;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
-
-use time;
+use std::time::Duration;
+use std::time::SystemTime;
 
 use Draw;
 use Matrix;
@@ -512,13 +512,13 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
         }
     }
 
-    pub fn animate<A, I>(&self, animation: A, interpolation: I, start_time: u64,
-                         duration_ns: u64) -> DrawContext<'a, 'b, D>
+    pub fn animate<A, I>(&self, animation: A, interpolation: I, start_time: SystemTime,
+                         duration: Duration) -> DrawContext<'a, 'b, D>
         where A: Animation, I: Interpolation
     {
-        let now = time::precise_time_ns();
+        let now = SystemTime::now();
 
-        let interpolation = interpolation.calculate(now, start_time, duration_ns);
+        let interpolation = interpolation.calculate(now, start_time, duration);
         let matrix = animation.animate(interpolation);
 
         DrawContext {

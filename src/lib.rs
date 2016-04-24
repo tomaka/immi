@@ -92,8 +92,6 @@
 //! }
 //! ```
 //!
-extern crate time;
-
 pub use draw::Draw;
 pub use id::WidgetId;
 pub use layout::draw;
