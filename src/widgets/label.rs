@@ -3,10 +3,10 @@ use Draw;
 use DrawContext;
 use HorizontalAlignment;
 
-pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::FontResource, text: &str,
-                                 alignment: &Alignment, rgb_color: [f32; 3])
+pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
+                                 alignment: &Alignment)
 {
-    let ratio = draw.draw().get_text_width_per_em(font, text);
+    let ratio = draw.draw().get_text_width_per_em(text_style, text);
     
     let draw = draw.enforce_aspect_ratio_downscale(ratio, alignment);
 
@@ -16,13 +16,13 @@ pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::FontResource, 
         }
     }
 
-    draw.draw().draw_text(font, &draw.matrix(), text, rgb_color);
+    draw.draw().draw_text(text_style, &draw.matrix(), text);
 }
 
-pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::FontResource, text: &str,
-                               alignment: &Alignment, rgb_color: [f32; 3])
+pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
+                               alignment: &Alignment)
 {
-    let ratio = draw.draw().get_text_width_per_em(font, text);
+    let ratio = draw.draw().get_text_width_per_em(text_style, text);
     
     let draw = draw.enforce_aspect_ratio_upscale(ratio, alignment);
 
@@ -32,15 +32,15 @@ pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::FontResource, te
         }
     }
 
-    draw.draw().draw_text(font, &draw.matrix(), text, rgb_color);
+    draw.draw().draw_text(text_style, &draw.matrix(), text);
 }
 
 /// The text will use the current height and will stretch horizontally as needed to preserve the
 /// correct aspect ratio.
-pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::FontResource, text: &str,
-                              alignment: &HorizontalAlignment, rgb_color: [f32; 3])
+pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
+                              alignment: &HorizontalAlignment)
 {
-    let ratio = draw.draw().get_text_width_per_em(font, text);
+    let ratio = draw.draw().get_text_width_per_em(text_style, text);
 
     let current_width_per_height = draw.width_per_height();
     let draw = draw.horizontal_rescale(ratio / current_width_per_height, &alignment);
@@ -51,5 +51,5 @@ pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, font: &D::FontResource, tex
         }
     }
 
-    draw.draw().draw_text(font, &draw.matrix(), text, rgb_color);
+    draw.draw().draw_text(text_style, &draw.matrix(), text);
 }

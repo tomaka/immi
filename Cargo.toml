@@ -1,6 +1,6 @@
 [package]
 name = "immi"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
 documentation = "http://tomaka.github.io/immi/immi/index.html"
 repository = "https://github.com/tomaka/immi"
