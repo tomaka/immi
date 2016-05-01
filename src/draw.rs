@@ -5,8 +5,8 @@ pub trait Draw {
     /// Type of a resource that represents an image.
     type ImageResource: ?Sized;
 
-    /// Type of a resource that represents a font.
-    type FontResource: ?Sized;
+    /// Type of a resource that represents the style of a text: its font, color, etc.
+    type TextStyle: ?Sized;
 
     /// Draws a single triangle that covers the top-left hand corner of the surface, multiplied
     /// by the matrix. In other words, the OpenGL positions of the triangle are `[-1.0, 1.0]`,
@@ -54,10 +54,9 @@ pub trait Draw {
     ///
     /// This function should not try to preseve the aspect ratio of the text. This is handled by
     /// the caller.
-    fn draw_text(&mut self, font: &Self::FontResource, matrix: &Matrix, text: &str,
-                 rgb_color: [f32; 3]);
+    fn draw_text(&mut self, text_style: &Self::TextStyle, matrix: &Matrix, text: &str);
 
-    /// Given a font and a text, this function returns the width the text would have on the screen,
-    /// divided by the size of a EM.
-    fn get_text_width_per_em(&mut self, font: &Self::FontResource, text: &str) -> f32;
+    /// Given a text style and a text, this function returns the width the text would have on the
+    /// screen, divided by the size of a EM.
+    fn get_text_width_per_em(&mut self, text_style: &Self::TextStyle, text: &str) -> f32;
 }

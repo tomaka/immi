@@ -38,11 +38,11 @@
 //! struct MyDrawer;
 //! impl immi::Draw for MyDrawer {
 //!     type ImageResource = str;
-//!     type FontResource = str;
+//!     type TextStyle = str;
 //! 
 //!     fn draw_triangle(&mut self, _: &str, _: &immi::Matrix, _: [[f32; 2]; 3]) {}
 //!     fn get_image_width_per_height(&mut self, _: &str) -> f32 { 1.0 }
-//!     fn draw_text(&mut self, _: &str, _: &immi::Matrix, _: &str, _: [f32; 3]) { }
+//!     fn draw_text(&mut self, _: &str, _: &immi::Matrix, _: &str) { }
 //!     fn get_text_width_per_em(&mut self, _: &str, _: &str) -> f32 { 1.0 }
 //! }
 //! 
