@@ -8,9 +8,13 @@ pub trait Draw {
     /// Type of a resource that represents the style of a text: its font, color, etc.
     type TextStyle: ?Sized;
 
-    /// Draws a single triangle that covers the top-left hand corner of the surface, multiplied
-    /// by the matrix. In other words, the OpenGL positions of the triangle are `[-1.0, 1.0]`,
-    /// `[-1.0, -1.0]` and `[1.0, 1.0]`.
+    /// Draws a single triangle that covers the top-left hand corner of the surface, pre-multiplied
+    /// by the matrix.
+    ///
+    /// If you use OpenGL, the positions of the vertices of the triangle are `[-1.0, 1.0]`,
+    /// `[-1.0, -1.0]` and `[1.0, 1.0]`. If you use Vulkan or DirectX, the positions of the
+    /// vertices are `[-1.0, -1.0]`, `[-1.0, 1.0]` and `[1.0, -1.0]`. All these coordinates must
+    /// be pre-multiplied by the matrix.
     ///
     /// The UV coordinates correspond to the UV coordinates of the texture. `[0.0, 0.0]` is the
     /// bottom-left hand corner of the texture, and `[1.0, 1.0]` is the top-right hand corner.
