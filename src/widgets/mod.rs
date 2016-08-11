@@ -15,3 +15,13 @@ pub enum Interaction {
     /// The cursor didn't click.
     None,
 }
+
+impl Interaction {
+    #[inline]
+    pub fn clicked(&self) -> bool {
+        match self {
+            &Interaction::Clicked => true,
+            _ => false,
+        }
+    }
+}
