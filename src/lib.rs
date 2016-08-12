@@ -55,12 +55,11 @@
 //!     // ...
 //! }
 //! 
-//! let mut immi_state = immi::UiState::default();
 //! let mut my_state = MyUiState { widget1_text: String::new(), checkbox: false };
 //! let mut drawer = MyDrawer;
 //! 
 //! loop {
-//!     let ui_context = immi::draw(&mut immi_state);
+//!     let ui_context = immi::draw();
 //!     let ui_context = ui_context.draw(1024.0, 768.0, &mut drawer, None, false, false);
 //!     draw_ui(&ui_context, &mut my_state);
 //! # break;
