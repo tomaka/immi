@@ -69,8 +69,8 @@ fn helper<D: ?Sized + Draw, F>(draw: &DrawContext<D>, text_style: &D::TextStyle,
     let mut x = 0.0;
     for chr in text.chars() {
         let glyph_infos = draw.draw().glyph_infos(text_style, chr);
-        let kerning = match mem::replace(&mut previous_chr, Some(chr)) {
-            Some(prev) => draw.draw().kerning(text_style, prev, chr),
+        let kerning = match mem::replace(&mut previous_chr, Some((chr, glyph_infos))) {
+            Some((prev, _)) => draw.draw().kerning(text_style, prev, chr),
             None => 0.0
         };
 
@@ -84,6 +84,12 @@ fn helper<D: ?Sized + Draw, F>(draw: &DrawContext<D>, text_style: &D::TextStyle,
 
         glyphs.push((chr, matrix));
         x += glyph_infos.x_advance;
+    }
+
+    if let Some((_, prev_infos)) = previous_chr {
+        x -= prev_infos.x_advance;
+        x += prev_infos.x_offset;
+        x += prev_infos.width;
     }
 
     // `x` now contains the width of the text in ems.
