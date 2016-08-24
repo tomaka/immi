@@ -9,17 +9,15 @@ use std::time::SystemTime;
 
 use Draw;
 use Matrix;
-use UiState;
 use WidgetId;
 
 use animations::Animation;
 use animations::Interpolation;
 
 /// Start drawing your UI.
-pub fn draw(ui_state: &mut UiState) -> SharedDrawContext {
+pub fn draw() -> SharedDrawContext {
     SharedDrawContext {
         shared1: Arc::new(Shared1 {
-            ui_state: Mutex::new(ui_state),
             next_widget_id: AtomicUsize::new(1),
             cursor_hovered_widget: AtomicBool::new(false),
         })
@@ -27,14 +25,14 @@ pub fn draw(ui_state: &mut UiState) -> SharedDrawContext {
 }
 
 /// A context shared between all draw contexts.
-pub struct SharedDrawContext<'a> {
-    shared1: Arc<Shared1<'a>>,
+pub struct SharedDrawContext {
+    shared1: Arc<Shared1>,
 }
 
-impl<'a> SharedDrawContext<'a> {
+impl SharedDrawContext {
     pub fn draw<'b, D: ?Sized + Draw + 'b>(&self, width: f32, height: f32, draw: &'b mut D,
                                            cursor: Option<[f32; 2]>, cursor_was_pressed: bool,
-                                           cursor_was_released: bool) -> DrawContext<'a, 'b, D>
+                                           cursor_was_released: bool) -> DrawContext<'b, D>
     {
         DrawContext {
             matrix: Matrix::identity(),
@@ -61,15 +59,14 @@ impl<'a> SharedDrawContext<'a> {
     }
 }
 
-struct Shared1<'a> {
-    ui_state: Mutex<&'a mut UiState>,
+struct Shared1 {
     next_widget_id: AtomicUsize,
     cursor_hovered_widget: AtomicBool,
 }
 
 /// Contains everything required to draw a widget.
-pub struct DrawContext<'a, 'b, D: ?Sized + Draw + 'b> {
-    shared1: Arc<Shared1<'a>>,
+pub struct DrawContext<'b, D: ?Sized + Draw + 'b> {
+    shared1: Arc<Shared1>,
     shared2: Arc<Shared2<'b, D>>,
 
     matrix: Matrix,
@@ -93,7 +90,7 @@ struct Shared2<'a, D: ?Sized + Draw + 'a> {
     cursor_hovered_widget: AtomicBool,
 }
 
-impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
+impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     /// UNSTABLE. Obtains the underlying `draw` object.
     #[inline]
     pub fn draw(&self) -> MutexGuard<&'b mut D> {
@@ -141,21 +138,6 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     #[inline]
     pub fn reserve_widget_id(&self) -> WidgetId {
         self.shared1.next_widget_id.fetch_add(1, Ordering::Relaxed).into()
-    }
-
-    #[inline]
-    pub fn get_active_widget(&self) -> Option<WidgetId> {
-        self.shared1.ui_state.lock().unwrap().active_widget.clone()
-    }
-
-    #[inline]
-    pub fn write_active_widget(&self, id: WidgetId) {
-        self.shared1.ui_state.lock().unwrap().active_widget = Some(id);
-    }
-
-    #[inline]
-    pub fn clear_active_widget(&self) {
-        self.shared1.ui_state.lock().unwrap().active_widget = None;
     }
 
     /// Returns true if the cursor is currently hovering this part of the viewport.
@@ -266,7 +248,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     ///
     /// The margin is expressed in percentage of the surface (between 0.0 and 1.0).
     #[inline]
-    pub fn margin(&self, top: f32, right: f32, bottom: f32, left: f32) -> DrawContext<'a, 'b, D> {
+    pub fn margin(&self, top: f32, right: f32, bottom: f32, left: f32) -> DrawContext<'b, D> {
         DrawContext {
             matrix: self.matrix * Matrix::translate(left - right, bottom - top)
                                 * Matrix::scale_wh(1.0 - right - left, 1.0 - top - bottom),
@@ -289,7 +271,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// values.
     #[inline]
     pub fn uniform_margin(&self, top: f32, right: f32, bottom: f32, left: f32)
-                          -> DrawContext<'a, 'b, D>
+                          -> DrawContext<'b, D>
     {
         let wph = self.width_per_height();
         let wph = if wph < 1.0 { 1.0 } else { wph };
@@ -306,7 +288,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// If the viewport needs to be reduced horizontally, then the horizontal alignment is used. If
     /// it needs to be reduced vertically, then the vertical alignment is used.
     pub fn enforce_aspect_ratio_downscale(&self, width_per_height: f32, alignment: &Alignment)
-                                          -> DrawContext<'a, 'b, D>
+                                          -> DrawContext<'b, D>
     {
         let current_width_per_height = self.width_per_height();
 
@@ -326,7 +308,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// If the viewport needs to be increased horizontally, then the horizontal alignment is used.
     /// If it needs to be increased vertically, then the vertical alignment is used.
     pub fn enforce_aspect_ratio_upscale(&self, width_per_height: f32, alignment: &Alignment)
-                                        -> DrawContext<'a, 'b, D>
+                                        -> DrawContext<'b, D>
     {
         let current_width_per_height = self.width_per_height();
 
@@ -347,7 +329,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// The alignment is used to determine the position of the new viewport inside the old one.
     #[inline]
     pub fn vertical_rescale(&self, scale: f32, alignment: &VerticalAlignment)
-                            -> DrawContext<'a, 'b, D>
+                            -> DrawContext<'b, D>
     {
         let y = match alignment {
             &VerticalAlignment::Center => 0.0,
@@ -374,7 +356,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// The alignment is used to determine the position of the new viewport inside the old one.
     #[inline]
     pub fn horizontal_rescale(&self, scale: f32, alignment: &HorizontalAlignment)
-                              -> DrawContext<'a, 'b, D>
+                              -> DrawContext<'b, D>
     {
         let x = match alignment {
             &HorizontalAlignment::Center => 0.0,
@@ -397,7 +379,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// Splits the viewport in `splits` vertical chunks of equal size.
     // TODO: don't return a Vec
     #[inline]
-    pub fn vertical_split(&self, splits: usize) -> Vec<DrawContext<'a, 'b, D>> {
+    pub fn vertical_split(&self, splits: usize) -> Vec<DrawContext<'b, D>> {
         // we use a "real" function because closures don't implement Clone
         #[inline(always)] fn gen(_: usize) -> f32 { 1.0 }
         self.vertical_split_weights((0 .. splits).map(gen as fn(usize) -> f32))
@@ -407,7 +389,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// weight 2 will have twice the size of a chunk of weight 1.
     // TODO: don't return a Vec
     #[inline]
-    pub fn vertical_split_weights<I>(&self, weights: I) -> Vec<DrawContext<'a, 'b, D>>
+    pub fn vertical_split_weights<I>(&self, weights: I) -> Vec<DrawContext<'b, D>>
                                      where I: ExactSizeIterator<Item = f32> + Clone
     {
         self.split_weights(weights, true)
@@ -416,7 +398,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// Splits the viewport in `splits` horizontal chunks of equal size.
     // TODO: don't return a Vec
     #[inline]
-    pub fn horizontal_split(&self, splits: usize) -> Vec<DrawContext<'a, 'b, D>> {
+    pub fn horizontal_split(&self, splits: usize) -> Vec<DrawContext<'b, D>> {
         // we use a "real" function because closures don't implement Clone
         #[inline(always)] fn gen(_: usize) -> f32 { 1.0 }
         self.horizontal_split_weights((0 .. splits).map(gen as fn(usize) -> f32))
@@ -426,7 +408,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// weight 2 will have twice the size of a chunk of weight 1.
     // TODO: don't return a Vec
     #[inline]
-    pub fn horizontal_split_weights<I>(&self, weights: I) -> Vec<DrawContext<'a, 'b, D>>
+    pub fn horizontal_split_weights<I>(&self, weights: I) -> Vec<DrawContext<'b, D>>
                                        where I: ExactSizeIterator<Item = f32> + Clone
     {
         self.split_weights(weights, false)
@@ -434,7 +416,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
 
     /// Internal implementation of the split functions.
     // TODO: don't return a Vec
-    fn split_weights<I>(&self, weights: I, vertical: bool) -> Vec<DrawContext<'a, 'b, D>>
+    fn split_weights<I>(&self, weights: I, vertical: bool) -> Vec<DrawContext<'b, D>>
                         where I: ExactSizeIterator<Item = f32> + Clone
     {
         assert!(weights.len() != 0);
@@ -485,7 +467,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     /// The alignment is used to determine the position of the newly-created context relative to
     /// the old one.
     pub fn rescale(&self, width_percent: f32, height_percent: f32, alignment: &Alignment)
-                   -> DrawContext<'a, 'b, D>
+                   -> DrawContext<'b, D>
     {
         let x = match alignment.horizontal {
             HorizontalAlignment::Center => 0.0,
@@ -513,7 +495,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     }
 
     pub fn animate<A, I>(&self, animation: A, interpolation: I, start_time: SystemTime,
-                         duration: Duration) -> DrawContext<'a, 'b, D>
+                         duration: Duration) -> DrawContext<'b, D>
         where A: Animation, I: Interpolation
     {
         let now = SystemTime::now();
@@ -534,8 +516,8 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> DrawContext<'a, 'b, D> {
     }
 }
 
-impl<'a, 'b, D: ?Sized + Draw + 'b> Clone for DrawContext<'a, 'b, D> {
-    fn clone(&self) -> DrawContext<'a, 'b, D> {
+impl<'a, 'b, D: ?Sized + Draw + 'b> Clone for DrawContext<'b, D> {
+    fn clone(&self) -> DrawContext<'b, D> {
         DrawContext {
             matrix: self.matrix.clone(),
             width: self.width.clone(),
