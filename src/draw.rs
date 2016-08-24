@@ -50,17 +50,57 @@ pub trait Draw {
         self.draw_triangle(name, &(*matrix * invert), [bottom_right, top_right, bottom_left]);
     }
 
+    /// Does the same as ` draw_image`, but draws a glyph of a text instead.
+    fn draw_glyph(&mut self, text_style: &Self::TextStyle, glyph: char, matrix: &Matrix);
+
     /// Given an image, this functions returns its width divided by its height.
     fn get_image_width_per_height(&mut self, name: &Self::ImageResource) -> f32;
 
-    /// Draws an image that covers the whole surface (from `-1.0` to `1.0` both horizontally and
-    /// vertically), but multiplied by the matrix.
-    ///
-    /// This function should not try to preseve the aspect ratio of the text. This is handled by
-    /// the caller.
-    fn draw_text(&mut self, text_style: &Self::TextStyle, matrix: &Matrix, text: &str);
+    /// Returns information about a specific glyph.
+    fn glyph_infos(&self, text_style: &Self::TextStyle, glyph: char) -> GlyphInfos;
 
-    /// Given a text style and a text, this function returns the width the text would have on the
-    /// screen, divided by the size of a EM.
-    fn get_text_width_per_em(&mut self, text_style: &Self::TextStyle, text: &str) -> f32;
+    /// Returns the kerning between two characters for the given font.
+    ///
+    /// The kerning is an offset to add to the position of a specific character when it follows
+    /// another specific character. For example when you write `To`, thanks to kerning the `o`
+    /// can slip under the `T`, which looks nicer than if they were simply next to each other.
+    ///
+    /// A positive value moves the second character further away from the first one, while a
+    /// negative values moves the second character next to the first one. The value must be a
+    /// multiple of 1 em. When in doubt, you can simply return `0.0`.
+    fn kerning(&self, text_style: &Self::TextStyle, first_char: char, second_char: char) -> f32;
+}
+
+/// Information about a single glyph.
+///
+/// All the values of this struct must be relative to the size of an EM, so that the library can
+/// adjust the values to any size.
+#[derive(Debug, Copy, Clone)]
+pub struct GlyphInfos {
+    /// Width of the glyph in pixels, divided by the number of pixels of an EM.
+    pub width: f32,
+
+    /// Height of the glyph in pixels, divided by the number of pixels of an EM.
+    ///
+    /// By definition, this value is supposed to be always 1.0 for the glyph 'M'. In practice this
+    /// is not always exactly true.
+    pub height: f32,
+
+    /// Number of pixels from the end of the previous glyph to the start of this one, divided by
+    /// the number of pixels of an EM.
+    pub x_offset: f32,
+
+    /// Number of pixels from the base of the line to the top of this one, divided by the number
+    /// of pixels of an EM.
+    ///
+    /// For glyphs that don't go under the line (like 'm' or 'u' for example), this is equal to
+    /// the height of the glyph. For glyphs that go under the line (like 'p' or 'g'), this is
+    /// equal to the height of the glyph minus the portion that goes under the line.
+    pub y_offset: f32,
+
+    /// Number of pixels from the end of the previous glyph to the end of this one, divided by
+    /// the number of pixels of an EM.
+    ///
+    /// Should always be superior to `width + x_offset`.
+    pub x_advance: f32,
 }
