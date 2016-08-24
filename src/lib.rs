@@ -43,6 +43,7 @@
 //!     fn draw_triangle(&mut self, _: &str, _: &immi::Matrix, _: [[f32; 2]; 3]) {}
 //!     fn get_image_width_per_height(&mut self, _: &str) -> f32 { 1.0 }
 //!     fn draw_glyph(&mut self, _: &str, _: char, _: &immi::Matrix) { }
+//!     fn line_height(&self, _: &str) -> f32 { 1.2 }
 //!     fn kerning(&self, _: &str, _: char, _: char) -> f32 { 0.0 }
 //!     fn glyph_infos(&self, _: &str, _: char) -> immi::GlyphInfos {
 //!         immi::GlyphInfos { width: 1.0, height: 1.0, x_offset: 0.0,

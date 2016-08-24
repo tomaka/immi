@@ -50,11 +50,16 @@ pub trait Draw {
         self.draw_triangle(name, &(*matrix * invert), [bottom_right, top_right, bottom_left]);
     }
 
+    /// Given an image, this functions returns its width divided by its height.
+    fn get_image_width_per_height(&mut self, name: &Self::ImageResource) -> f32;
+
     /// Does the same as ` draw_image`, but draws a glyph of a text instead.
     fn draw_glyph(&mut self, text_style: &Self::TextStyle, glyph: char, matrix: &Matrix);
 
-    /// Given an image, this functions returns its width divided by its height.
-    fn get_image_width_per_height(&mut self, name: &Self::ImageResource) -> f32;
+    /// Returns the height of a line of text in EMs.
+    ///
+    /// This value is usually somewhere around `1.2`.
+    fn line_height(&self, text_style: &Self::TextStyle) -> f32;
 
     /// Returns information about a specific glyph.
     fn glyph_infos(&self, text_style: &Self::TextStyle, glyph: char) -> GlyphInfos;
