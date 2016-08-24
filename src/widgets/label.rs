@@ -79,7 +79,7 @@ fn helper<D: ?Sized + Draw, F>(draw: &DrawContext<D>, text_style: &D::TextStyle,
         let matrix = Matrix::translate(x + glyph_infos.x_offset,
                                        glyph_infos.y_offset - glyph_infos.height)
             * Matrix::scale_wh(glyph_infos.width, glyph_infos.height)
-            * Matrix::translate(1.0, 1.0)
+            * Matrix::translate(0.5, 0.5)
             * Matrix::scale(0.5);
 
         glyphs.push((chr, matrix));
@@ -87,9 +87,15 @@ fn helper<D: ?Sized + Draw, F>(draw: &DrawContext<D>, text_style: &D::TextStyle,
     }
 
     // `x` now contains the width of the text in ems.
+
+    // In the code above, we moved each character so that (0, 0) is the bottom-left corner of
+    // the first character. We have to move everything so that it becomes (-1, -1) again.
+    let recenter_matrix = Matrix::scale_wh(2.0 / x, 2.0)
+            * Matrix::translate(-x / 2.0, -0.75);       // TODO: why -0.75? don't know. In theory -0.5 should be the value, but -0.75 is the one that works in practice
+
     let final_matrix = final_matrix(x);
 
     for (chr, matrix) in glyphs.into_iter() {
-        draw.draw().draw_glyph(text_style, chr, &(final_matrix * matrix));
+        draw.draw().draw_glyph(text_style, chr, &(final_matrix * recenter_matrix * matrix));
     } 
 }
