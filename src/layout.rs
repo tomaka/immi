@@ -377,86 +377,53 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     }
 
     /// Splits the viewport in `splits` vertical chunks of equal size.
-    // TODO: don't return a Vec
     #[inline]
-    pub fn vertical_split(&self, splits: usize) -> Vec<DrawContext<'b, D>> {
-        // we use a "real" function because closures don't implement Clone
-        #[inline(always)] fn gen(_: usize) -> f32 { 1.0 }
-        self.vertical_split_weights((0 .. splits).map(gen as fn(usize) -> f32))
+    pub fn vertical_split<'a>(&'a self, splits: usize) -> SplitsIter<'a, 'b, OneGen, D> {
+        let iter = OneGen { n: splits };
+        self.vertical_split_weights(iter)
     }
 
     /// Same as `vertical_split`, but attributes a weight to each chunk. For example a chunk of
     /// weight 2 will have twice the size of a chunk of weight 1.
-    // TODO: don't return a Vec
     #[inline]
-    pub fn vertical_split_weights<I>(&self, weights: I) -> Vec<DrawContext<'b, D>>
-                                     where I: ExactSizeIterator<Item = f32> + Clone
+    pub fn vertical_split_weights<'a, I>(&'a self, weights: I) -> SplitsIter<'a, 'b, I, D>
+        where I: ExactSizeIterator<Item = f32> + Clone
     {
         self.split_weights(weights, true)
     }
 
     /// Splits the viewport in `splits` horizontal chunks of equal size.
-    // TODO: don't return a Vec
     #[inline]
-    pub fn horizontal_split(&self, splits: usize) -> Vec<DrawContext<'b, D>> {
-        // we use a "real" function because closures don't implement Clone
-        #[inline(always)] fn gen(_: usize) -> f32 { 1.0 }
-        self.horizontal_split_weights((0 .. splits).map(gen as fn(usize) -> f32))
+    pub fn horizontal_split<'a>(&'a self, splits: usize) -> SplitsIter<'a, 'b, OneGen, D> {
+        let iter = OneGen { n: splits };
+        self.horizontal_split_weights(iter)
     }
 
     /// Same as `horizontal_split`, but attributes a weight to each chunk. For example a chunk of
     /// weight 2 will have twice the size of a chunk of weight 1.
-    // TODO: don't return a Vec
     #[inline]
-    pub fn horizontal_split_weights<I>(&self, weights: I) -> Vec<DrawContext<'b, D>>
-                                       where I: ExactSizeIterator<Item = f32> + Clone
+    pub fn horizontal_split_weights<'a, I>(&'a self, weights: I) -> SplitsIter<'a, 'b, I, D>
+        where I: ExactSizeIterator<Item = f32> + Clone
     {
         self.split_weights(weights, false)
     }
 
     /// Internal implementation of the split functions.
-    // TODO: don't return a Vec
-    fn split_weights<I>(&self, weights: I, vertical: bool) -> Vec<DrawContext<'b, D>>
-                        where I: ExactSizeIterator<Item = f32> + Clone
+    fn split_weights<'a, I>(&'a self, weights: I, vertical: bool) -> SplitsIter<'a, 'b, I, D>
+        where I: ExactSizeIterator<Item = f32> + Clone
     {
         assert!(weights.len() != 0);
 
         let total_weight = weights.clone().fold(0.0, |a, b| a + b);
         let total_weight_inverse = 1.0 / total_weight;
 
-        let mut current_offset = 0.0;
-
-        weights.map(|weight| {
-            let new_width = if !vertical { self.width * weight * total_weight_inverse } else { self.width };
-            let new_height = if vertical { self.height * weight * total_weight_inverse } else { self.height };
-
-            let scale_matrix = if vertical {
-                Matrix::scale_wh(1.0, weight * total_weight_inverse)
-            } else {
-                Matrix::scale_wh(weight * total_weight_inverse, 1.0)
-            };
-
-            let pos_matrix = if vertical {
-                let y = 1.0 - 2.0 * (current_offset + weight * 0.5) * total_weight_inverse;
-                Matrix::translate(0.0, y)
-            } else {
-                let x = 2.0 * (current_offset + weight * 0.5) * total_weight_inverse - 1.0;
-                Matrix::translate(x, 0.0)
-            };
-
-            current_offset += weight;
-
-            DrawContext {
-                matrix: self.matrix * pos_matrix * scale_matrix,
-                width: new_width,
-                height: new_height,
-                shared1: self.shared1.clone(),
-                shared2: self.shared2.clone(),
-                cursor: self.cursor,
-                cursor_was_pressed: self.cursor_was_pressed,
-                cursor_was_released: self.cursor_was_released,
-            }
-        }).collect()
+        SplitsIter {
+            parent: self,
+            weights: weights,
+            total_weight_inverse: total_weight_inverse,
+            current_offset: 0.0,
+            vertical: vertical,
+        }
     }
 
     /// Changes the dimensions of the context.
@@ -643,4 +610,95 @@ pub enum VerticalAlignment {
     Top,
     /// Align bottom.
     Bottom,
+}
+
+/// Iterator that splits a context in pieces and returns new contexts.
+pub struct SplitsIter<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> {
+    parent: &'a DrawContext<'b, D>,
+    weights: I,
+    total_weight_inverse: f32,
+    current_offset: f32,
+    vertical: bool,
+}
+
+impl<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> Iterator for SplitsIter<'a, 'b, I, D>
+    where I: Iterator<Item = f32>
+{
+    type Item = DrawContext<'b, D>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let weight = match self.weights.next() {
+            Some(w) => w,
+            None => return None
+        };
+
+        let new_width = if !self.vertical { self.parent.width * weight * self.total_weight_inverse }
+                        else { self.parent.width };
+        let new_height = if self.vertical { self.parent.height * weight * self.total_weight_inverse }
+                         else { self.parent.height };
+
+        let scale_matrix = if self.vertical {
+            Matrix::scale_wh(1.0, weight * self.total_weight_inverse)
+        } else {
+            Matrix::scale_wh(weight * self.total_weight_inverse, 1.0)
+        };
+
+        let pos_matrix = if self.vertical {
+            let y = 1.0 - 2.0 * (self.current_offset + weight * 0.5) * self.total_weight_inverse;
+            Matrix::translate(0.0, y)
+        } else {
+            let x = 2.0 * (self.current_offset + weight * 0.5) * self.total_weight_inverse - 1.0;
+            Matrix::translate(x, 0.0)
+        };
+
+        self.current_offset += weight;
+
+        Some(DrawContext {
+            matrix: self.parent.matrix * pos_matrix * scale_matrix,
+            width: new_width,
+            height: new_height,
+            shared1: self.parent.shared1.clone(),
+            shared2: self.parent.shared2.clone(),
+            cursor: self.parent.cursor,
+            cursor_was_pressed: self.parent.cursor_was_pressed,
+            cursor_was_released: self.parent.cursor_was_released,
+        })
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.weights.size_hint()
+    }
+}
+
+impl<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> ExactSizeIterator for SplitsIter<'a, 'b, I, D>
+    where I: ExactSizeIterator<Item = f32>
+{
+}
+
+/// Iterator that generates `1.0` a number of times.
+// TODO: This is required so that `horizontal_split` and `vertical_split` can express their
+//       return type. Should be replaced with `-> impl Iterator` eventually.
+#[derive(Debug, Clone)]
+pub struct OneGen {
+    n: usize
+}
+
+impl Iterator for OneGen {
+    type Item = f32;
+
+    #[inline]
+    fn next(&mut self) -> Option<f32> {
+        if self.n == 0 { return None; }
+        self.n -= 1;
+        Some(1.0)
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.n, Some(self.n))
+    }
+}
+
+impl ExactSizeIterator for OneGen {
 }
