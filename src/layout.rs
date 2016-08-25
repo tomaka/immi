@@ -386,10 +386,10 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     /// Same as `vertical_split`, but attributes a weight to each chunk. For example a chunk of
     /// weight 2 will have twice the size of a chunk of weight 1.
     #[inline]
-    pub fn vertical_split_weights<'a, I>(&'a self, weights: I) -> SplitsIter<'a, 'b, I, D>
-        where I: ExactSizeIterator<Item = f32> + Clone
+    pub fn vertical_split_weights<'a, I>(&'a self, weights: I) -> SplitsIter<'a, 'b, I::IntoIter, D>
+        where I: IntoIterator<Item = f32>, I::IntoIter: ExactSizeIterator + Clone
     {
-        self.split_weights(weights, true)
+        self.split_weights(weights.into_iter(), true)
     }
 
     /// Splits the viewport in `splits` horizontal chunks of equal size.
@@ -402,10 +402,10 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     /// Same as `horizontal_split`, but attributes a weight to each chunk. For example a chunk of
     /// weight 2 will have twice the size of a chunk of weight 1.
     #[inline]
-    pub fn horizontal_split_weights<'a, I>(&'a self, weights: I) -> SplitsIter<'a, 'b, I, D>
-        where I: ExactSizeIterator<Item = f32> + Clone
+    pub fn horizontal_split_weights<'a, I>(&'a self, weights: I) -> SplitsIter<'a, 'b, I::IntoIter, D>
+        where I: IntoIterator<Item = f32>, I::IntoIter: ExactSizeIterator + Clone
     {
-        self.split_weights(weights, false)
+        self.split_weights(weights.into_iter(), false)
     }
 
     /// Internal implementation of the split functions.
