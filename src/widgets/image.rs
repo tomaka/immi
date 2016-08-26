@@ -16,7 +16,7 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageRes
         }
     }
 
-    draw.draw().draw_image(image_name, draw.matrix());
+    draw.draw().draw_image(image_name, &draw.matrix());
 }
 
 /// Increases the size of the image until it covers the context, and draws it.

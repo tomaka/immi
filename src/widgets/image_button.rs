@@ -25,7 +25,7 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
         draw.set_cursor_hovered_widget();
 
         if Some(widget_id.clone()) == ui_state.active_widget {
-            draw.draw().draw_image(active_image, draw.matrix());
+            draw.draw().draw_image(active_image, &draw.matrix());
 
             if draw.cursor_was_released() {
                 ui_state.active_widget = None;
@@ -35,17 +35,17 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
             }
 
         } else if draw.cursor_was_pressed() {
-            draw.draw().draw_image(active_image, draw.matrix());
+            draw.draw().draw_image(active_image, &draw.matrix());
             ui_state.active_widget = Some(widget_id.clone());
             Interaction::None
 
         } else {
-            draw.draw().draw_image(hovered_image, draw.matrix());
+            draw.draw().draw_image(hovered_image, &draw.matrix());
             Interaction::None
         }
 
     } else {
-        draw.draw().draw_image(normal_image, draw.matrix());
+        draw.draw().draw_image(normal_image, &draw.matrix());
         Interaction::None
     }
 }

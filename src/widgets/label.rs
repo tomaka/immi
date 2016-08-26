@@ -25,7 +25,7 @@ pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, 
             }
         }
 
-        draw.matrix().clone()
+        draw.matrix()
     })
 }
 
@@ -43,7 +43,7 @@ pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyl
             }
         }
 
-        draw.matrix().clone()
+        draw.matrix()
     })
 }
 
@@ -61,7 +61,7 @@ pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle,
             }
         }
 
-        draw.matrix().clone()
+        draw.matrix()
     })
 }
 
