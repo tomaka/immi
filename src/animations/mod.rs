@@ -149,3 +149,27 @@ impl Interpolation for EaseOut {
         1.0 - (-anim_progress * self.factor).exp()
     }
 }
+
+/// Wraps around an interpolation and reverses it. The element will start at its final position
+/// and go towards the start.
+#[derive(Copy, Clone, Debug)]
+pub struct Reversed<I> {
+    inner: I
+}
+
+impl<I> Reversed<I> where I: Interpolation {
+    /// Builds a `Reversed` object.
+    #[inline]
+    pub fn new(inner: I) -> Reversed<I> {
+        Reversed {
+            inner: inner,
+        }
+    }
+}
+
+impl<I> Interpolation for Reversed<I> where I: Interpolation {
+    #[inline]
+    fn calculate(&self, now: SystemTime, start: SystemTime, duration: Duration) -> f32 {
+        1.0 - self.inner.calculate(now, start, duration)
+    }
+}
