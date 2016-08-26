@@ -74,6 +74,13 @@ pub trait Interpolation {
     /// Implementations typically return `0.0` when `now < start` and `1.0` when
     /// `now > start + duration_ns`.
     fn calculate(&self, now: SystemTime, start: SystemTime, duration: Duration) -> f32;
+
+    /// Reverses and interpolation. The element will start at its final position and go towards
+    /// the start.
+    #[inline]
+    fn reverse(self) -> Reversed<Self> where Self: Sized {
+        Reversed::new(self)
+    }
 }
 
 /// A linear animation. The animation progresses at a constant rate.
@@ -147,5 +154,29 @@ impl Interpolation for EaseOut {
 
         let anim_progress = (now_minus_start_ms / duration_ms) as f32;
         1.0 - (-anim_progress * self.factor).exp()
+    }
+}
+
+/// Wraps around an interpolation and reverses it. The element will start at its final position
+/// and go towards the start.
+#[derive(Copy, Clone, Debug)]
+pub struct Reversed<I> {
+    inner: I
+}
+
+impl<I> Reversed<I> where I: Interpolation {
+    /// Builds a `Reversed` object.
+    #[inline]
+    pub fn new(inner: I) -> Reversed<I> {
+        Reversed {
+            inner: inner,
+        }
+    }
+}
+
+impl<I> Interpolation for Reversed<I> where I: Interpolation {
+    #[inline]
+    fn calculate(&self, now: SystemTime, start: SystemTime, duration: Duration) -> f32 {
+        1.0 - self.inner.calculate(now, start, duration)
     }
 }
