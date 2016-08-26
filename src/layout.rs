@@ -112,6 +112,8 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     #[inline]
     pub fn matrix(&self) -> Matrix {
         if let Some((matrix, percent)) = self.animation {
+            // TODO: correct decomposition with https://drafts.csswg.org/css-transforms/#decomposing-a-2d-matrix
+
             #[inline]
             fn lerp(a: f32, b: f32, f: f32) -> f32 { a + (b - a) * f }
 
