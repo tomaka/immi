@@ -27,6 +27,7 @@ use widgets::image;
 pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, empty: &D::ImageResource,
                               full: &D::ImageResource, progress: f32, alignment: &Alignment)
 {
+    let draw = draw.animation_stop();
     let ratio = draw.draw().get_image_width_per_height(empty);
     stretch(&draw.enforce_aspect_ratio_downscale(ratio, alignment), empty, full, progress)
 }
