@@ -15,7 +15,8 @@ use matrix::Matrix;
 pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
                               alignment: &HorizontalAlignment)
 {
-    helper(draw, text_style, text, |ratio| {
+    let draw = draw.animation_stop();
+    helper(&draw, text_style, text, |ratio| {
         let current_width_per_height = draw.width_per_height();
         let draw = draw.horizontal_rescale(ratio / current_width_per_height, &alignment);
 
@@ -34,7 +35,8 @@ pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, 
 pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
                                  alignment: &Alignment)
 {
-    helper(draw, text_style, text, |ratio| {
+    let draw = draw.animation_stop();
+    helper(&draw, text_style, text, |ratio| {
         let draw = draw.enforce_aspect_ratio_downscale(ratio, alignment);
 
         if !draw.cursor_hovered_widget() {
@@ -52,7 +54,8 @@ pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyl
 pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
                                alignment: &Alignment)
 {
-    helper(draw, text_style, text, |ratio| {
+    let draw = draw.animation_stop();
+    helper(&draw, text_style, text, |ratio| {
         let draw = draw.enforce_aspect_ratio_upscale(ratio, alignment);
 
         if !draw.cursor_hovered_widget() {

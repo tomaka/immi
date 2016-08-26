@@ -489,18 +489,19 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     ///
     /// At the moment where you call this function, the element must be at its starting point.
     /// After you call this function, you must add further transformations to represent the
-    /// destination.
+    /// destination. Don't forget to call `animation_stop` if you want to add further
+    /// transformations.
     ///
     /// You can easily reverse this order (ie. the element is at its destination when you call the
     /// function and will be moved to its source) by reversing the interpolation with `.reverse()`.
     #[inline]
-    pub fn animate<I>(&self, interpolation: I, start_time: SystemTime, duration: Duration)
-                     -> DrawContext<'b, D>
+    pub fn animation_start<I>(&self, interpolation: I, start_time: SystemTime, duration: Duration)
+                              -> DrawContext<'b, D>
         where I: Interpolation
     {
         let now = SystemTime::now();
 
-        let interpolation = interpolation.calculate(now, start_time, duration);
+        let interpolation = interpolation.calculate(now, start_time, duration) as f32;
         let current_matrix = self.matrix();
 
         DrawContext {
@@ -508,6 +509,22 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
             width: self.width,
             height: self.height,
             animation: Some((current_matrix, interpolation)),
+            shared1: self.shared1.clone(),
+            shared2: self.shared2.clone(),
+            cursor: self.cursor,
+            cursor_was_pressed: self.cursor_was_pressed,
+            cursor_was_released: self.cursor_was_released,
+        }
+    }
+
+    /// Stops the animation process. The next commands will always be applied.
+    #[inline]
+    pub fn animation_stop(&self) -> DrawContext<'b, D> {
+        DrawContext {
+            matrix: self.matrix(),
+            width: self.width,
+            height: self.height,
+            animation: None,
             shared1: self.shared1.clone(),
             shared2: self.shared2.clone(),
             cursor: self.cursor,

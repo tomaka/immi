@@ -10,6 +10,7 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
                               active_image: &D::ImageResource, alignment: &Alignment)
                               -> Interaction
 {
+    let draw = draw.animation_stop();
     let ratio = draw.draw().get_image_width_per_height(normal_image);
     stretch(&draw.enforce_aspect_ratio_downscale(ratio, alignment), ui_state, normal_image,
             hovered_image, active_image)
