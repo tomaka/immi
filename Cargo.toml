@@ -5,6 +5,6 @@ authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
 documentation = "http://tomaka.github.io/immi/immi/index.html"
 repository = "https://github.com/tomaka/immi"
 readme = "README.md"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 description = "Immediate mode user interface toolkit."
 keywords = ["ui", "gamedev", "user", "interface"]
