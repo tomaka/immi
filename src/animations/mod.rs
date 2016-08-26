@@ -74,6 +74,13 @@ pub trait Interpolation {
     /// Implementations typically return `0.0` when `now < start` and `1.0` when
     /// `now > start + duration_ns`.
     fn calculate(&self, now: SystemTime, start: SystemTime, duration: Duration) -> f32;
+
+    /// Reverses and interpolation. The element will start at its final position and go towards
+    /// the start.
+    #[inline]
+    fn reverse(self) -> Reversed<Self> where Self: Sized {
+        Reversed::new(self)
+    }
 }
 
 /// A linear animation. The animation progresses at a constant rate.
