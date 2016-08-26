@@ -36,6 +36,10 @@ pub struct SharedDrawContext {
 }
 
 impl SharedDrawContext {
+    ///
+    /// The cursor coordinates, if any, must be in OpenGL viewport coordinates. In other words,
+    /// `[-1.0, -1.0]` corresponds to the bottom-left hand corner of the screen, and `[1.0, 1.0]`
+    /// to the top-right hand corner.
     pub fn draw<'b, D: ?Sized + Draw + 'b>(&self, width: f32, height: f32, draw: &'b mut D,
                                            cursor: Option<[f32; 2]>, cursor_was_pressed: bool,
                                            cursor_was_released: bool) -> DrawContext<'b, D>
