@@ -47,6 +47,6 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, empty: &D::ImageResource
 
     // Drawing the full image.
     let draw = draw.horizontal_rescale(progress, progress_direction);
-    draw.draw().draw_image_uv(full, draw.matrix(), [0.0, 1.0], [progress, 1.0], [progress, 0.0],
+    draw.draw().draw_image_uv(full, &draw.matrix(), [0.0, 1.0], [progress, 1.0], [progress, 0.0],
                               [0.0, 0.0]);
 }

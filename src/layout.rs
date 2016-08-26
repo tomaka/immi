@@ -11,7 +11,6 @@ use Draw;
 use Matrix;
 use WidgetId;
 
-use animations::Animation;
 use animations::Interpolation;
 
 /// Start drawing your UI.
@@ -38,6 +37,7 @@ impl SharedDrawContext {
             matrix: Matrix::identity(),
             width: width,
             height: height,
+            animation: None,
             cursor: cursor,
             cursor_was_pressed: cursor_was_pressed,
             cursor_was_released: cursor_was_released,
@@ -73,6 +73,11 @@ pub struct DrawContext<'b, D: ?Sized + Draw + 'b> {
     width: f32,
     height: f32,
 
+    /// If `Some`, contains the base animation. The first value is the matrix of the start of
+    /// the animation, and the second value is the percentage of the linear interpolation between
+    /// `0.0` and `1.0`.
+    animation: Option<(Matrix, f32)>,
+
     /// Position of the cursor between `-1.0` and `1.0`, where -1.0 is the left or bottom, and 1.0
     /// is the right or top of the window.
     ///
@@ -98,8 +103,22 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     }
 
     #[inline]
-    pub fn matrix(&self) -> &Matrix {
-        &self.matrix
+    pub fn matrix(&self) -> Matrix {
+        if let Some((matrix, percent)) = self.animation {
+            #[inline]
+            fn lerp(a: f32, b: f32, f: f32) -> f32 { a + (b - a) * f }
+
+            let matrix = matrix.0;
+            let my_m = self.matrix.0;
+
+            Matrix([
+                [lerp(matrix[0][0], my_m[0][0], percent),  lerp(matrix[0][1], my_m[0][1], percent)],
+                [lerp(matrix[1][0], my_m[1][0], percent),  lerp(matrix[1][1], my_m[1][1], percent)],
+                [lerp(matrix[2][0], my_m[2][0], percent),  lerp(matrix[2][1], my_m[2][1], percent)]
+            ])
+        } else {
+            self.matrix
+        }
     }
 
     /// Returns true if the cursor went from up to down in the current frame.
@@ -197,7 +216,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
         }
 
         if let Some(cursor) = self.cursor {
-            test(self.matrix(), &cursor)
+            test(&self.matrix(), &cursor)
         } else {
             false
         }
@@ -256,6 +275,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
             height: self.height * (1.0 - top - bottom),
             shared1: self.shared1.clone(),
             shared2: self.shared2.clone(),
+            animation: self.animation,
             cursor: self.cursor,
             cursor_was_pressed: self.cursor_was_pressed,
             cursor_was_released: self.cursor_was_released,
@@ -341,6 +361,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
             matrix: self.matrix * Matrix::translate(0.0, y) * Matrix::scale_wh(1.0, scale),
             width: self.width,
             height: self.height * scale,
+            animation: self.animation,
             shared1: self.shared1.clone(),
             shared2: self.shared2.clone(),
             cursor: self.cursor,
@@ -368,6 +389,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
             matrix: self.matrix * Matrix::translate(x, 0.0) * Matrix::scale_wh(scale, 1.0),
             width: self.width * scale,
             height: self.height,
+            animation: self.animation,
             shared1: self.shared1.clone(),
             shared2: self.shared2.clone(),
             cursor: self.cursor,
@@ -453,6 +475,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
                                 * Matrix::scale_wh(width_percent, height_percent),
             width: self.width * width_percent,
             height: self.height * height_percent,
+            animation: self.animation,
             shared1: self.shared1.clone(),
             shared2: self.shared2.clone(),
             cursor: self.cursor,
@@ -461,19 +484,30 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
         }
     }
 
-    pub fn animate<A, I>(&self, animation: A, interpolation: I, start_time: SystemTime,
-                         duration: Duration) -> DrawContext<'b, D>
-        where A: Animation, I: Interpolation
+    /// Starts an animation. The interpolation, start time and duration are used to calculate
+    /// at which point of the animation we are.
+    ///
+    /// At the moment where you call this function, the element must be at its starting point.
+    /// After you call this function, you must add further transformations to represent the
+    /// destination.
+    ///
+    /// You can easily reverse this order (ie. the element is at its destination when you call the
+    /// function and will be moved to its source) by reversing the interpolation with `.reverse()`.
+    #[inline]
+    pub fn animate<I>(&self, interpolation: I, start_time: SystemTime, duration: Duration)
+                     -> DrawContext<'b, D>
+        where I: Interpolation
     {
         let now = SystemTime::now();
 
         let interpolation = interpolation.calculate(now, start_time, duration);
-        let matrix = animation.animate(interpolation);
+        let current_matrix = self.matrix();
 
         DrawContext {
-            matrix: self.matrix * matrix,
+            matrix: self.matrix,
             width: self.width,
             height: self.height,
+            animation: Some((current_matrix, interpolation)),
             shared1: self.shared1.clone(),
             shared2: self.shared2.clone(),
             cursor: self.cursor,
@@ -489,6 +523,7 @@ impl<'a, 'b, D: ?Sized + Draw + 'b> Clone for DrawContext<'b, D> {
             matrix: self.matrix.clone(),
             width: self.width.clone(),
             height: self.height.clone(),
+            animation: self.animation.clone(),
             shared1: self.shared1.clone(),
             shared2: self.shared2.clone(),
             cursor: self.cursor.clone(),
@@ -657,6 +692,7 @@ impl<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> Iterator for SplitsIter<'a, 'b, I, D>
             matrix: self.parent.matrix * pos_matrix * scale_matrix,
             width: new_width,
             height: new_height,
+            animation: self.parent.animation,
             shared1: self.parent.shared1.clone(),
             shared2: self.parent.shared2.clone(),
             cursor: self.parent.cursor,

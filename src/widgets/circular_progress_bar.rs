@@ -67,7 +67,7 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, empty: &D::ImageResource
             _ => unreachable!()
         };
 
-        draw.draw().draw_triangle(full, &(*draw.matrix() * local_matrix), [uv1, [0.5, 0.5], uv3]);
+        draw.draw().draw_triangle(full, &(draw.matrix() * local_matrix), [uv1, [0.5, 0.5], uv3]);
     }
 
     // Drawing the bottom-right image of each rectangle.
@@ -89,6 +89,6 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, empty: &D::ImageResource
             _ => unreachable!()
         };
 
-        draw.draw().draw_triangle(full, &(*draw.matrix() * local_matrix), [uv1, [0.5, 0.5], uv3]);
+        draw.draw().draw_triangle(full, &(draw.matrix() * local_matrix), [uv1, [0.5, 0.5], uv3]);
     }
 }

@@ -3,68 +3,6 @@
 use std::time::Duration;
 use std::time::SystemTime;
 
-use Matrix;
-
-/// Describes a way to modify an element during an animation.
-pub trait Animation {
-    /// Takes an animation percentage between `0.0` and `1.0`. Returns the most-inner matrix to
-    /// multiply the element with.
-    fn animate(&self, percent: f32) -> Matrix;
-}
-
-/// Relative movement of the element from `initial_offset` to `[0.0, 0.0]`.
-pub struct Translation {
-    /// The initial position of the element at the start of the animation.
-    ///
-    /// A value of `1.0` corresponds to half of the size of the element.
-    pub initial_offset: [f32; 2],
-}
-
-impl Translation {
-    /// Builds a `Translation` object.
-    #[inline]
-    pub fn new(initial_offset: [f32; 2]) -> Translation {
-        Translation {
-            initial_offset: initial_offset,
-        }
-    }
-}
-
-impl Animation for Translation {
-    #[inline]
-    fn animate(&self, percent: f32) -> Matrix {
-        let x = (1.0 - percent) * self.initial_offset[0];
-        let y = (1.0 - percent) * self.initial_offset[1];
-        Matrix::translate(x, y)
-    }
-}
-
-/// Zooms the element from `initial_zoom` to `1.0`.
-pub struct Zoom {
-    /// The initial zoom of the element at the start of the animation.
-    ///
-    /// `1.0` is the normal size. `2.0` means twice bigger. `0.5` means twice smaller.
-    pub initial_zoom: f32,
-}
-
-impl Zoom {
-    /// Builds a `Zoom` object.
-    #[inline]
-    pub fn new(initial_zoom: f32) -> Zoom {
-        Zoom {
-            initial_zoom: initial_zoom,
-        }
-    }
-}
-
-impl Animation for Zoom {
-    #[inline]
-    fn animate(&self, percent: f32) -> Matrix {
-        let s = (1.0 - percent) * (self.initial_zoom - 1.0) + 1.0;
-        Matrix::scale(s)
-    }
-}
-
 /// Describes how an animation should be interpolated.
 pub trait Interpolation {
     /// Takes an instance representing the current point in time, an instant representing the
