@@ -18,13 +18,16 @@ pub trait Draw {
     /// Draws a single triangle that covers the top-left hand corner of the surface, pre-multiplied
     /// by the matrix.
     ///
-    /// If you use OpenGL, the positions of the vertices of the triangle are `[-1.0, 1.0]`,
-    /// `[-1.0, -1.0]` and `[1.0, 1.0]`. If you use Vulkan or DirectX, the positions of the
-    /// vertices are `[-1.0, -1.0]`, `[-1.0, 1.0]` and `[1.0, -1.0]`. All these coordinates must
-    /// be pre-multiplied by the matrix.
+    /// To do so, draw a triangle whose coordinatges are `[-1.0, 1.0]`, `[-1.0, -1.0]`
+    /// and `[1.0, 1.0]`, then pre-muliplty these coordinates with the matrix given as parameter.
+    /// If you use Vulkan or DirectX, you have to perform an additional step. Pre-multiply that
+    /// result with a matrix that inverts the `y` coordinate (ie. an identity matrix but whose
+    /// value at the second row of the second column is `-1.0`).
     ///
-    /// The UV coordinates correspond to the UV coordinates of the texture. `[0.0, 0.0]` is the
-    /// bottom-left hand corner of the texture, and `[1.0, 1.0]` is the top-right hand corner.
+    /// The UV coordinates passed as parameter are respectively the texture coordinates at the
+    /// top-left, bottom-left and top-right corners. `[0.0, 0.0]` is the bottom-left hand corner
+    /// of the texture, and `[1.0, 1.0]` is the top-right hand corner. If you use OpenGL, you can
+    /// pass through the values. If you use DirectX or Vulkan, you must do `y = 1.0 - y` somewhere.
     fn draw_triangle(&mut self, texture: &Self::ImageResource, matrix: &Matrix,
                      uv_coords: [[f32; 2]; 3]);
 
@@ -60,7 +63,7 @@ pub trait Draw {
     /// Given an image, this functions returns its width divided by its height.
     fn get_image_width_per_height(&mut self, name: &Self::ImageResource) -> f32;
 
-    /// Does the same as ` draw_image`, but draws a glyph of a text instead.
+    /// Does the same as `draw_image`, but draws a glyph of a text instead.
     fn draw_glyph(&mut self, text_style: &Self::TextStyle, glyph: char, matrix: &Matrix);
 
     /// Returns the height of a line of text in EMs.
