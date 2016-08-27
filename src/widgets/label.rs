@@ -6,6 +6,8 @@
 // copied, modified, or distributed except according to those terms.
 
 //! A label is a single line of text.
+//!
+//! You usually want to use the `flow` function.
 
 use std::mem;
 
