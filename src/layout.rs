@@ -5,9 +5,11 @@
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
+use std::cell::Cell;
+use std::cell::RefCell;
+use std::cell::RefMut;
+use std::rc::Rc;
 use std::sync::Arc;
-use std::sync::Mutex;
-use std::sync::MutexGuard;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
@@ -55,9 +57,9 @@ impl SharedDrawContext {
             cursor_was_pressed: cursor_was_pressed,
             cursor_was_released: cursor_was_released,
             shared1: self.shared1.clone(),
-            shared2: Arc::new(Shared2 {
-                draw: Mutex::new(draw),
-                cursor_hovered_widget: AtomicBool::new(false),
+            shared2: Rc::new(Shared2 {
+                draw: RefCell::new(draw),
+                cursor_hovered_widget: Cell::new(false),
             }),
         }
     }
@@ -85,7 +87,7 @@ struct Shared1 {
 /// Contains everything required to draw a widget.
 pub struct DrawContext<'b, D: ?Sized + Draw + 'b> {
     shared1: Arc<Shared1>,
-    shared2: Arc<Shared2<'b, D>>,
+    shared2: Rc<Shared2<'b, D>>,
 
     matrix: Matrix,
     width: f32,
@@ -107,18 +109,18 @@ pub struct DrawContext<'b, D: ?Sized + Draw + 'b> {
 }
 
 struct Shared2<'a, D: ?Sized + Draw + 'a> {
-    draw: Mutex<&'a mut D>,
+    draw: RefCell<&'a mut D>,
 
     /// True if the cursor is over an element of the UI.
-    cursor_hovered_widget: AtomicBool,
+    cursor_hovered_widget: Cell<bool>,
 }
 
 impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     /// UNSTABLE. Obtains the underlying `draw` object.
     #[inline]
     #[doc(hidden)]
-    pub fn draw(&self) -> MutexGuard<&'b mut D> {
-        self.shared2.draw.lock().unwrap()
+    pub fn draw(&self) -> RefMut<&'b mut D> {
+        self.shared2.draw.borrow_mut()
     }
 
     /// Returns a matrix that turns a fullscreen rectangle into a rectangle that covers only the
@@ -167,7 +169,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     /// call `set_cursor_hovered_widget` to pass this value to true.
     #[inline]
     pub fn cursor_hovered_widget(&self) -> bool {
-        self.shared2.cursor_hovered_widget.load(Ordering::Relaxed)
+        self.shared2.cursor_hovered_widget.get()
     }
 
     /// Signals the context that the cursor is currently hovering it. This can be later retreived
@@ -175,7 +177,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     #[inline]
     pub fn set_cursor_hovered_widget(&self) {
         self.shared1.cursor_hovered_widget.store(true, Ordering::Relaxed);
-        self.shared2.cursor_hovered_widget.store(true, Ordering::Relaxed);
+        self.shared2.cursor_hovered_widget.set(true);
     }
 
     /// Reserves a new ID for a widget. Calling this function multiple times always returns
