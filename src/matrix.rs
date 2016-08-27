@@ -140,13 +140,6 @@ impl ops::Mul<[f32; 3]> for Matrix {
     }
 }
 
-/*impl From<[[f32; 3]; 3]> for Matrix {
-    #[inline]
-    fn from(val: [[f32; 3]; 3]) -> Matrix {
-        Matrix(val)
-    }
-}*/
-
 impl Into<[[f32; 3]; 3]> for Matrix {
     #[inline]
     fn into(self) -> [[f32; 3]; 3] {
@@ -171,5 +164,34 @@ impl Into<[[f32; 4]; 4]> for Matrix {
             [  0.0,     0.0,   0.0, 0.0],
             [m[2][0], m[2][1], 0.0, 1.0]
         ]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::f32::consts::PI;
+    use matrix::Matrix;
+
+    #[test]
+    fn multiply() {
+        assert_eq!(Matrix::scale(2.0) * Matrix::scale(3.0),
+                   Matrix::scale(6.0));
+
+        assert_eq!(Matrix::translate(1.0, 2.0) * Matrix::translate(4.0, -1.0),
+                   Matrix::translate(5.0, 1.0));
+    }
+
+    #[test]
+    fn invert() {
+        assert_eq!(Matrix::scale(2.0).invert().unwrap(),
+                   Into::<[[f32; 3]; 3]>::into(Matrix::scale(0.5)));
+
+        assert_eq!(Matrix::translate(4.0, 0.5).invert().unwrap(),
+                   Into::<[[f32; 3]; 3]>::into(Matrix::translate(-4.0, -0.5)));
+
+        // Note that this rotation test works "by chance" because values are not
+        // exactly 0.0 or 1.0.
+        assert_eq!(Matrix::rotate(PI).invert().unwrap(),
+                   Into::<[[f32; 3]; 3]>::into(Matrix::rotate(-PI)));
     }
 }
