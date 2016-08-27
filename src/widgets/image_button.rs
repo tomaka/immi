@@ -5,6 +5,14 @@
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
+//! Image buttons are images that are clickable.
+//!
+//! You can specify different images for when the button is in a normal state, a hovered state,
+//! or an active state.
+//!
+//! All the functions in this module return an `Interaction` object that indicates whether they
+//! were clicked. 
+
 use Alignment;
 use Draw;
 use DrawContext;
@@ -12,6 +20,7 @@ use UiState;
 
 use widgets::Interaction;
 
+/// Same as `image::draw`, except that the image is clickable.
 pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
                               normal_image: &D::ImageResource, hovered_image: &D::ImageResource,
                               active_image: &D::ImageResource, alignment: &Alignment)
@@ -23,6 +32,7 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
             hovered_image, active_image)
 }
 
+/// Same as `image::stretch`, except that the image is clickable.
 pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
                                  normal_image: &D::ImageResource, hovered_image: &D::ImageResource,
                                  active_image: &D::ImageResource) -> Interaction

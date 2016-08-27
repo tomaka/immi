@@ -5,6 +5,10 @@
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
+//! The widgets that can be drawn. 
+//!
+//! Each module corresponds to a widget. See the individual module documentations for more info.
+
 pub mod circular_progress_bar;
 pub mod image;
 pub mod image9;
@@ -24,6 +28,8 @@ pub enum Interaction {
 }
 
 impl Interaction {
+    /// Returns `true` if equal to `Clicked`. This function is useful so that you don't have to
+    /// import the enum in scope.
     #[inline]
     pub fn clicked(&self) -> bool {
         match self {

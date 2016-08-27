@@ -5,6 +5,8 @@
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
+//! Same as `image9`, except that the image is clickable.
+
 use Draw;
 use DrawContext;
 use UiState;
@@ -12,6 +14,8 @@ use UiState;
 use widgets::Interaction;
 use widgets::image9;
 
+/// Same as `image9::draw`, except that the image is clickable. You can specify different images
+/// for when the button is non-hovered, hovered, or active. 
 pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
                               left_border_percent: f32, normal_image: &D::ImageResource,
                               hovered_image: &D::ImageResource, active_image: &D::ImageResource,

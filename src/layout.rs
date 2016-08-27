@@ -21,6 +21,8 @@ use WidgetId;
 use animations::Interpolation;
 
 /// Start drawing your UI.
+///
+/// This function builds a `SharedDrawContext` that can be used to build `DrawContext`s.
 pub fn draw() -> SharedDrawContext {
     SharedDrawContext {
         shared1: Arc::new(Shared1 {
@@ -60,7 +62,12 @@ impl SharedDrawContext {
         }
     }
 
-    /// Returns true if one of the elements that has been drawn is under the mouse cursor.
+    /// Returns true if one of the elements that has been drawn by one of the draw contexts was
+    /// under the mouse cursor.
+    ///
+    /// This function can be used to determine whether the user is hovering some part of the UI.
+    /// In other words, if this function returns false, then you know that the user is hovering
+    /// what is under the UI.
     ///
     /// When you create the context, this value is initally false. Each widget that you draw can
     /// call `set_cursor_hovered_widget` to pass this value to true.
@@ -109,10 +116,13 @@ struct Shared2<'a, D: ?Sized + Draw + 'a> {
 impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     /// UNSTABLE. Obtains the underlying `draw` object.
     #[inline]
+    #[doc(hidden)]
     pub fn draw(&self) -> MutexGuard<&'b mut D> {
         self.shared2.draw.lock().unwrap()
     }
 
+    /// Returns a matrix that turns a fullscreen rectangle into a rectangle that covers only the
+    /// context's area.
     #[inline]
     pub fn matrix(&self) -> Matrix {
         if let Some((matrix, percent)) = self.animation {
@@ -129,6 +139,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
                 [lerp(matrix[1][0], my_m[1][0], percent),  lerp(matrix[1][1], my_m[1][1], percent)],
                 [lerp(matrix[2][0], my_m[2][0], percent),  lerp(matrix[2][1], my_m[2][1], percent)]
             ])
+
         } else {
             self.matrix
         }
@@ -167,12 +178,16 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
         self.shared2.cursor_hovered_widget.store(true, Ordering::Relaxed);
     }
 
+    /// Reserves a new ID for a widget. Calling this function multiple times always returns
+    /// a different id.
     #[inline]
     pub fn reserve_widget_id(&self) -> WidgetId {
         self.shared1.next_widget_id.fetch_add(1, Ordering::Relaxed).into()
     }
 
     /// Returns true if the cursor is currently hovering this part of the viewport.
+    ///
+    /// This is equivalent to `cursor_hover_coordinates().is_some()`, except more optimized.
     #[inline]
     pub fn is_cursor_hovering(&self) -> bool {
         /// Calculates whether the point is in a rectangle multiplied by a matrix.
@@ -276,7 +291,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
         self.width / self.height
     }
 
-    /// Builds a new draw context containing a subpart of the current context, but with a margin.
+    /// Builds a new draw context containing a subarea of the current context, but with a margin.
     ///
     /// The margin is expressed in percentage of the surface (between 0.0 and 1.0).
     #[inline]
@@ -295,7 +310,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
         }
     }
 
-    /// Builds a new draw context containing a subpart of the current context, but with a margin.
+    /// Builds a new draw context containing a subarea of the current context, but with a margin.
     ///
     /// If the width of the surface is inferior to the height then the margin is expressed as a
     /// percentage of the width, and vice versa.
@@ -355,7 +370,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
         }
     }
 
-    /// Builds a new draw context containing a subpart of the current context. The width of the new
+    /// Builds a new draw context containing a subarea of the current context. The width of the new
     /// viewport will be the same as the current one, but its new height will be multipled by
     /// the value of `scale`.
     ///
@@ -383,7 +398,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
         }
     }
 
-    /// Builds a new draw context containing a subpart of the current context. The height of the new
+    /// Builds a new draw context containing a subarea of the current context. The height of the new
     /// viewport will be the same as the current one, but its new width will be multipled by
     /// the value of `scale`.
     ///
@@ -444,6 +459,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     }
 
     /// Internal implementation of the split functions.
+    #[inline]
     fn split_weights<'a, I>(&'a self, weights: I, vertical: bool) -> SplitsIter<'a, 'b, I, D>
         where I: ExactSizeIterator<Item = f32> + Clone
     {
@@ -742,7 +758,7 @@ impl<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> ExactSizeIterator for SplitsIter<'a, 
 {
 }
 
-/// Iterator that generates `1.0` a number of times.
+/// Iterator that generates `1.0` a certain number of times.
 // TODO: This is required so that `horizontal_split` and `vertical_split` can express their
 //       return type. Should be replaced with `-> impl Iterator` eventually.
 #[derive(Debug, Clone)]
