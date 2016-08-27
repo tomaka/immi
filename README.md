@@ -9,8 +9,8 @@ Immediate mode user interface library.
 
 ## [Documentation](https://docs.rs/crate/immi/1)
 
-Crates.io: https://docs.rs/crate/immi/1
-Master branch: http://tomaka.github.io/immi/immi/index.html
+- Crates.io: https://docs.rs/crate/immi/1
+- Master branch: http://tomaka.github.io/immi/immi/index.html
 
 The documentation contains the basics of immi.
 
