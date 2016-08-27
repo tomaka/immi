@@ -7,35 +7,30 @@
 
 //! # Immediate mode UI and general application architecture
 //!
-//! The principle of immediate more UI is that the position and dimensions of the UI elements are
-//! calculated at each frame. The current state of the user interface (for example the content of
-//! text boxes, if there are multiple tabs which one is the current one, etc.) is not stored within
-//! widgets themselves, but in an external structure.
-//! 
-//! Here is how you design your code in order to work with immi:
-//! 
-//! - You define a custom structure that describes the state of your user interface.
-//! - You define a type that implements the `immi::Draw` trait.
-//! - You define a function whose purpose is to draw your user interface. Usually you want to
+//! The principle of an immediate mode UI is that the position and dimensions of the UI elements
+//! are calculated at each frame. The current state of the user interface (for example the content
+//! of text boxes, whether a checkbox is checked, which tab is the current tab, etc.) is not stored
+//! by the immi library, but in a user-defined structure.
+//!
+//! There are three steps involved to make your program work with immi:
+//!
+//! - Create a custom structure that describes the state of your user interface. This state
+//!   should contain a `immi::UiState` object.
+//! - Create a type that implements the `immi::Draw` trait and that handles loading images,
+//!   fonts, and drawing the user interface on the screen. This is the most complicated part.
+//! - Create a function whose purpose is to draw your user interface. Usually you want to
 //!   create one function for each part of the UI instead, and call all of them in a main function.
-//! 
-//! There are only two objects that you store persistently:
-//! 
-//! - An instance of your custom struct that describes your UI.
-//! - An instance of `immi::UiState`.
-//! 
-//! These two objects describe your user interface. They are the only state that is required.
-//! 
-//! At each frame, when it is time to draw your UI, you:
-//! 
-//! - Call `immi::draw` and pass a reference to your `immi::UiState`. You will get
-//!   a `SharedDrawContext`. This object represents a context for drawing the entirety of your UI.
-//! - Sometimes you need to share information between multiple user interfaces. For example in a
-//!   game you sometimes have a main UI, but also small in-game overlays. A shared draw context
-//!   shares data between all of these. Call `draw()` on your `SharedDrawContext` in order to
-//!   obtain a `DrawContext`. You will need to pass your drawing object.
-//! - Once you have a `DrawContext`, call your custom UI-drawing function, and pass the
-//!   `DrawContext` by reference and your custom UI-state struct by mutable reference.
+//!
+//! At each frame, when it is time to draw your UI:
+//!
+//! - Call `immi::draw`. You will get a `SharedDrawContext`. This object represents a context for
+//!   drawing the entirety of your UI.
+//! - Call `draw()` on your `SharedDrawContext` in order to obtain a `DrawContext`. You will need
+//!   to pass your implementation of `immi::Draw` (see above), indicate the position of the mouse
+//!   pointer, the dimensions of the viewport, and whether or not the main mouse button was pressed
+//!   or released. 
+//! - Call your custom UI-drawing function (see above), and pass it a reference to the `DrawContext`
+//!   and a mutable reference to your custom state-holding structure.
 //! - The function draws the various elements and updates the UI state.
 //!
 //! ## Example
@@ -59,6 +54,7 @@
 //! }
 //!
 //! struct MyUiState {
+//!     immi_state: immi::UiState,  
 //!     widget1_text: String,
 //!     checkbox: bool,
 //! }
@@ -66,8 +62,9 @@
 //! fn draw_ui(ctxt: &immi::DrawContext<MyDrawer>, ui_state: &mut MyUiState) {
 //!     // ...
 //! }
-//! 
-//! let mut my_state = MyUiState { widget1_text: String::new(), checkbox: false };
+//!
+//! let mut my_state = MyUiState { widget1_text: String::new(), checkbox: false,
+//!                                immi_state: Default::default() };
 //! let mut drawer = MyDrawer;
 //! 
 //! loop {
@@ -86,20 +83,35 @@
 //! this area contain the whole viewport, but you can call methods on the `DrawContext` to adjust
 //! this area.
 //!
+//! In order to draw widgets, you can use the functions provided by the modules of the `widgets`
+//! module of this library.
+//!
 //! Example:
 //!
 //! ```rust
-//! fn draw_ui<D>(draw: immi::DrawContext<D>) where D: immi::Draw<ImageResource = str> {
-//!     // draws an image on the whole screen
-//!     // the bottom alignment is used if the aspect ratio of the image doesn't match the aspect
-//!     // ratio of the viewport
-//!     immi::widgets::image::draw(&draw, "background", &immi::Alignment::bottom());
+//! fn draw_ui<D>(ctxt: &immi::DrawContext<D>)
+//!     where D: immi::Draw<ImageResource = str>
+//! {
+//!     // Assuming you immediately called `draw_ui` after creating the `DrawContext`, the `ctxt`
+//!     // object represents the whole viewport..
 //!
-//!     // we resize the viewport so that it only covers the top half of the screen
-//!     let draw = draw.vertical_rescale(0.5, &immi::VerticalAlignment::Top);
+//!     // Draws an image on the whole viewport.
+//!     // The bottom alignment is used if the aspect ratio of the image doesn't match the aspect
+//!     // ratio of the viewport.
+//!     // The "background" string will be passed to your implementation of `immi::Draw`, so you
+//!     // are free to choose what the type of data exactly is.
+//!     immi::widgets::image::draw(ctxt, "background", &immi::Alignment::bottom());
 //!
-//!     // draws an image on the top half of the screen
-//!     immi::widgets::image::draw(&draw, "top_background", &immi::Alignment::center());
+//!     // We resize the viewport so that it only covers the top half of the screen
+//!     let ctxt = ctxt.vertical_rescale(0.5, &immi::VerticalAlignment::Bottom);
+//!     draw_bottom_bar(&ctxt);
+//! }
+//!
+//! fn draw_bottom_bar<D>(ctxt: &immi::DrawContext<D>)
+//!     where D: immi::Draw<ImageResource = str>
+//! {
+//!     // Draws an image on the bottom half of the screen
+//!     immi::widgets::image::draw(ctxt, "top_background", &immi::Alignment::center());
 //! }
 //! ```
 //!

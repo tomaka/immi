@@ -1,6 +1,6 @@
 [package]
 name = "immi"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
 documentation = "https://docs.rs/crate/immi/1"
 repository = "https://github.com/tomaka/immi"
