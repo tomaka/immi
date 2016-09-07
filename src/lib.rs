@@ -135,7 +135,7 @@ pub mod animations;
 pub mod widgets;
 
 /// Contains some persistent info about the UI.
-#[derive(Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct UiState {
     /// Identifier of the widget that is currently active.
     ///
