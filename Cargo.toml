@@ -1,6 +1,6 @@
 [package]
 name = "immi"
-version = "1.0.2"
+version = "1.0.3"
 authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
 documentation = "https://docs.rs/crate/immi/1"
 repository = "https://github.com/tomaka/immi"
@@ -8,3 +8,4 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 description = "Immediate mode user interface toolkit."
 keywords = ["ui", "gamedev", "user", "interface"]
+categories = ["gui"]
