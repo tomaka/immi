@@ -16,7 +16,6 @@ use std::sync::atomic::Ordering;
 use std::time::Duration;
 use std::time::SystemTime;
 
-use Draw;
 use Matrix;
 use WidgetId;
 
@@ -44,9 +43,9 @@ impl SharedDrawContext {
     /// The cursor coordinates, if any, must be in OpenGL viewport coordinates. In other words,
     /// `[-1.0, -1.0]` corresponds to the bottom-left hand corner of the screen, and `[1.0, 1.0]`
     /// to the top-right hand corner.
-    pub fn draw<'b, D: ?Sized + Draw + 'b>(&self, width: f32, height: f32, draw: &'b mut D,
-                                           cursor: Option<[f32; 2]>, cursor_was_pressed: bool,
-                                           cursor_was_released: bool) -> DrawContext<'b, D>
+    pub fn draw<'b, D: ?Sized + 'b>(&self, width: f32, height: f32, draw: &'b mut D,
+                                    cursor: Option<[f32; 2]>, cursor_was_pressed: bool,
+                                    cursor_was_released: bool) -> DrawContext<'b, D>
     {
         DrawContext {
             matrix: Matrix::identity(),
@@ -85,7 +84,7 @@ struct Shared1 {
 }
 
 /// Contains everything required to draw a widget.
-pub struct DrawContext<'b, D: ?Sized + Draw + 'b> {
+pub struct DrawContext<'b, D: ?Sized + 'b> {
     shared1: Arc<Shared1>,
     shared2: Rc<Shared2<'b, D>>,
 
@@ -108,14 +107,14 @@ pub struct DrawContext<'b, D: ?Sized + Draw + 'b> {
     cursor_was_released: bool,
 }
 
-struct Shared2<'a, D: ?Sized + Draw + 'a> {
+struct Shared2<'a, D: ?Sized + 'a> {
     draw: RefCell<&'a mut D>,
 
     /// True if the cursor is over an element of the UI.
     cursor_hovered_widget: Cell<bool>,
 }
 
-impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
+impl<'b, D: ?Sized + 'b> DrawContext<'b, D> {
     /// UNSTABLE. Obtains the underlying `draw` object.
     #[inline]
     #[doc(hidden)]
@@ -565,7 +564,7 @@ impl<'b, D: ?Sized + Draw + 'b> DrawContext<'b, D> {
     }
 }
 
-impl<'a, 'b, D: ?Sized + Draw + 'b> Clone for DrawContext<'b, D> {
+impl<'a, 'b, D: ?Sized + 'b> Clone for DrawContext<'b, D> {
     fn clone(&self) -> DrawContext<'b, D> {
         DrawContext {
             matrix: self.matrix.clone(),
@@ -696,7 +695,7 @@ pub enum VerticalAlignment {
 }
 
 /// Iterator that splits a context in pieces and returns new contexts.
-pub struct SplitsIter<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> {
+pub struct SplitsIter<'a, 'b: 'a, I, D: ?Sized + 'b> {
     parent: &'a DrawContext<'b, D>,
     weights: I,
     total_weight_inverse: f32,
@@ -704,7 +703,7 @@ pub struct SplitsIter<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> {
     vertical: bool,
 }
 
-impl<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> Iterator for SplitsIter<'a, 'b, I, D>
+impl<'a, 'b: 'a, I, D: ?Sized + 'b> Iterator for SplitsIter<'a, 'b, I, D>
     where I: Iterator<Item = f32>
 {
     type Item = DrawContext<'b, D>;
@@ -755,7 +754,7 @@ impl<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> Iterator for SplitsIter<'a, 'b, I, D>
     }
 }
 
-impl<'a, 'b: 'a, I, D: ?Sized + Draw + 'b> ExactSizeIterator for SplitsIter<'a, 'b, I, D>
+impl<'a, 'b: 'a, I, D: ?Sized + 'b> ExactSizeIterator for SplitsIter<'a, 'b, I, D>
     where I: ExactSizeIterator<Item = f32>
 {
 }

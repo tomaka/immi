@@ -14,17 +14,17 @@
 //! were clicked. 
 
 use Alignment;
-use Draw;
+use DrawImage;
 use DrawContext;
 use UiState;
 
 use widgets::Interaction;
 
 /// Same as `image::draw`, except that the image is clickable.
-pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
-                              normal_image: &D::ImageResource, hovered_image: &D::ImageResource,
-                              active_image: &D::ImageResource, alignment: &Alignment)
-                              -> Interaction
+pub fn draw<D: ?Sized + DrawImage<I>, I: ?Sized>(draw: &DrawContext<D>, ui_state: &mut UiState,
+                                                 normal_image: &I, hovered_image: &I,
+                                                 active_image: &I, alignment: &Alignment)
+                                                 -> Interaction
 {
     let draw = draw.animation_stop();
     let ratio = draw.draw().get_image_width_per_height(normal_image);
@@ -33,9 +33,9 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
 }
 
 /// Same as `image::stretch`, except that the image is clickable.
-pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
-                                 normal_image: &D::ImageResource, hovered_image: &D::ImageResource,
-                                 active_image: &D::ImageResource) -> Interaction
+pub fn stretch<D: ?Sized + DrawImage<I>, I: ?Sized>(draw: &DrawContext<D>, ui_state: &mut UiState,
+                                                    normal_image: &I, hovered_image: &I,
+                                                    active_image: &I) -> Interaction
 {
     let widget_id = draw.reserve_widget_id();
 

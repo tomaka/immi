@@ -7,7 +7,7 @@
 
 //! Same as `image9`, except that the image is clickable.
 
-use Draw;
+use DrawImage;
 use DrawContext;
 use UiState;
 
@@ -16,11 +16,11 @@ use widgets::image9;
 
 /// Same as `image9::draw`, except that the image is clickable. You can specify different images
 /// for when the button is non-hovered, hovered, or active. 
-pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, ui_state: &mut UiState,
-                              left_border_percent: f32, normal_image: &D::ImageResource,
-                              hovered_image: &D::ImageResource, active_image: &D::ImageResource,
-                              top_percent: f32, right_percent: f32, bottom_percent: f32,
-                              left_percent: f32) -> Interaction
+pub fn draw<D: ?Sized + DrawImage<I>, I: ?Sized>(draw: &DrawContext<D>, ui_state: &mut UiState,
+                                                 left_border_percent: f32, normal_image: &I,
+                                                 hovered_image: &I, active_image: &I,
+                                                 top_percent: f32, right_percent: f32, bottom_percent: f32,
+                                                 left_percent: f32) -> Interaction
 {
     let widget_id = draw.reserve_widget_id();
 

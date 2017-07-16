@@ -10,12 +10,12 @@
 //! If you want to use an image as a button, see the other modules.
 
 use Alignment;
-use Draw;
+use DrawImage;
 use DrawContext;
 
 /// Decreases the size of the image if necessary until it fits in the context, then draws it.
-pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageResource,
-                              alignment: &Alignment)
+pub fn draw<D: ?Sized + DrawImage<I>, I: ?Sized>(draw: &DrawContext<D>, image_name: &I,
+                                                 alignment: &Alignment)
 {
     let draw = draw.animation_stop();
 
@@ -24,7 +24,7 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageResour
 }
 
 /// Stretches the image if necessary so that it corresponds to the context's area, then draws it.
-pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageResource) {
+pub fn stretch<D: ?Sized + DrawImage<I>, I: ?Sized>(draw: &DrawContext<D>, image_name: &I) {
     if !draw.cursor_hovered_widget() {
         if draw.is_cursor_hovering() {
             draw.set_cursor_hovered_widget();
@@ -35,8 +35,8 @@ pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageRes
 }
 
 /// Increases the size of the image until it covers the context, then draws it.
-pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, image_name: &D::ImageResource,
-                              alignment: &Alignment)
+pub fn cover<D: ?Sized + DrawImage<I>, I: ?Sized>(draw: &DrawContext<D>, image_name: &I,
+                                                  alignment: &Alignment)
 {
     let draw = draw.animation_stop();
     let ratio = draw.draw().get_image_width_per_height(image_name);

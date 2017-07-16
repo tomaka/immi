@@ -38,12 +38,11 @@
 //! ```rust
 //! // Object that will allow you to draw the UI.
 //! struct MyDrawer;
-//! impl immi::Draw for MyDrawer {
-//!     type ImageResource = str;
-//!     type TextStyle = str;
-//!
+//! impl immi::DrawImage<str> for MyDrawer {
 //!     fn draw_triangle(&mut self, _: &str, _: &immi::Matrix, _: [[f32; 2]; 3]) {}
 //!     fn get_image_width_per_height(&mut self, _: &str) -> f32 { 1.0 }
+//! }
+//! impl immi::DrawText<str> for MyDrawer {
 //!     fn draw_glyph(&mut self, _: &str, _: char, _: &immi::Matrix) { }
 //!     fn line_height(&self, _: &str) -> f32 { 1.2 }
 //!     fn kerning(&self, _: &str, _: char, _: char) -> f32 { 0.0 }
@@ -88,9 +87,9 @@
 //!
 //! Example:
 //!
-//! ```rust
+//! ```
 //! fn draw_ui<D>(ctxt: &immi::DrawContext<D>)
-//!     where D: immi::Draw<ImageResource = str>
+//!     where D: immi::DrawImage<str>
 //! {
 //!     // Assuming you immediately called `draw_ui` after creating the `DrawContext`, the `ctxt`
 //!     // object represents the whole viewport..
@@ -108,14 +107,15 @@
 //! }
 //!
 //! fn draw_bottom_bar<D>(ctxt: &immi::DrawContext<D>)
-//!     where D: immi::Draw<ImageResource = str>
+//!     where D: immi::DrawImage<str>
 //! {
 //!     // Draws an image on the bottom half of the screen
 //!     immi::widgets::image::draw(ctxt, "top_background", &immi::Alignment::center());
 //! }
 //! ```
 //!
-pub use draw::Draw;
+pub use draw::DrawImage;
+pub use draw::DrawText;
 pub use draw::GlyphInfos;
 pub use id::WidgetId;
 pub use layout::draw;

@@ -12,7 +12,7 @@
 use std::mem;
 
 use Alignment;
-use Draw;
+use DrawText;
 use DrawContext;
 use HorizontalAlignment;
 use matrix::Matrix;
@@ -23,8 +23,8 @@ use matrix::Matrix;
 /// This is usually the function that you want in order to draw text. Even though the text
 /// can overflow its container if it is too long, it is usually visually better to have an
 /// overflow than to have multiple texts of different heights when they should be the same.
-pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
-                              alignment: &HorizontalAlignment)
+pub fn flow<D: ?Sized + DrawText<T>, T: ?Sized>(draw: &DrawContext<D>, text_style: &T, text: &str,
+                                                alignment: &HorizontalAlignment)
 {
     let draw = draw.animation_stop();
     helper(&draw, text_style, text, |ratio| {
@@ -43,8 +43,8 @@ pub fn flow<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, 
 
 /// Draws text. The text will be sized so that it is entirely contained within the context, and
 /// either its width or its height is equal to the width or the height of the context.
-pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
-                                 alignment: &Alignment)
+pub fn contain<D: ?Sized + DrawText<T>, T: ?Sized>(draw: &DrawContext<D>, text_style: &T, text: &str,
+                                                   alignment: &Alignment)
 {
     let draw = draw.animation_stop();
     helper(&draw, text_style, text, |ratio| {
@@ -62,8 +62,8 @@ pub fn contain<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyl
 
 /// Draws text. The text will be sized so that it entirely covers the context, and either its
 /// width or its height is equal to the width or the height of the context.
-pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
-                               alignment: &Alignment)
+pub fn cover<D: ?Sized + DrawText<T>, T: ?Sized>(draw: &DrawContext<D>, text_style: &T, text: &str,
+                                                 alignment: &Alignment)
 {
     let draw = draw.animation_stop();
     helper(&draw, text_style, text, |ratio| {
@@ -79,8 +79,8 @@ pub fn cover<D: ?Sized + Draw>(draw: &DrawContext<D>, text_style: &D::TextStyle,
     })
 }
 
-fn helper<D: ?Sized + Draw, F>(draw: &DrawContext<D>, text_style: &D::TextStyle, text: &str,
-                               final_matrix: F)
+fn helper<D: ?Sized + DrawText<T>, T: ?Sized, F>(draw: &DrawContext<D>, text_style: &T, text: &str,
+                                                 final_matrix: F)
     where F: FnOnce(f32) -> Matrix
 {
     let mut glyphs: Vec<(char, Matrix)> = Vec::with_capacity(text.len());

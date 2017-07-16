@@ -20,7 +20,7 @@
 //! calculated by maintaining the correct aspect ratio.
 
 use Alignment;
-use Draw;
+use DrawImage;
 use DrawContext;
 
 /// Draws a 9-parts image.
@@ -29,9 +29,9 @@ use DrawContext;
 ///
 /// - Panics if `top_percent + bottom_percent > 1.0` or `left_percent + right_percent > 1.0`.
 ///
-pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, left_border_percent: f32,
-                              image_name: &D::ImageResource, top_percent: f32, right_percent: f32,
-                              bottom_percent: f32, left_percent: f32)
+pub fn draw<D: ?Sized + DrawImage<I>, I: ?Sized>(draw: &DrawContext<D>, left_border_percent: f32,
+                                                 image_name: &I, top_percent: f32, right_percent: f32,
+                                                 bottom_percent: f32, left_percent: f32)
 {
     assert!(top_percent + bottom_percent <= 1.0);
     assert!(left_percent + right_percent <= 1.0);
