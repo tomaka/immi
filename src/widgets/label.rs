@@ -114,10 +114,11 @@ fn helper<D: ?Sized + Draw, F>(draw: &DrawContext<D>, text_style: &D::TextStyle,
 
     // `x` now contains the width of the text in ems.
 
-    // In the code above, we moved each character so that (0, 0) is the bottom-left corner of
-    // the first character. We have to move everything so that it becomes (-1, -1) again.
+    // So far the matrix of each character is in a coordinate system where 1.0 unit is equal to 1.0
+    // EM and the bottom-left corner of the first glyph is 0.0. Y=1.0 is the top of the line of
+    // text. We have to adjust this coordinates system for the final output.
     let recenter_matrix = Matrix::scale_wh(2.0 / x, 2.0)
-            * Matrix::translate(-x / 2.0, -0.75);       // TODO: why -0.75? don't know. In theory -0.5 should be the value, but -0.75 is the one that works in practice
+            * Matrix::translate(-x / 2.0, -0.5);
 
     let final_matrix = final_matrix(x);
 
