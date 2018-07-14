@@ -8,13 +8,7 @@
 use Matrix;
 
 /// Trait for a context that can handle drawing.
-pub trait Draw {
-    /// Type of a resource that represents an image.
-    type ImageResource: ?Sized;
-
-    /// Type of a resource that represents the style of a text: its font, color, etc.
-    type TextStyle: ?Sized;
-
+pub trait DrawImage<I: ?Sized> {
     /// Draws a single triangle that covers the top-left hand corner of the surface, pre-multiplied
     /// by the matrix.
     ///
@@ -28,7 +22,7 @@ pub trait Draw {
     /// top-left, bottom-left and top-right corners. `[0.0, 0.0]` is the bottom-left hand corner
     /// of the texture, and `[1.0, 1.0]` is the top-right hand corner. If you use OpenGL, you can
     /// pass through the values. If you use DirectX or Vulkan, you must do `y = 1.0 - y` somewhere.
-    fn draw_triangle(&mut self, texture: &Self::ImageResource, matrix: &Matrix,
+    fn draw_triangle(&mut self, texture: &I, matrix: &Matrix,
                      uv_coords: [[f32; 2]; 3]);
 
     /// Draws an image that covers the whole surface (from `-1.0` to `1.0` both horizontally and
@@ -37,7 +31,7 @@ pub trait Draw {
     /// This function should not try to preseve the aspect ratio of the image. This is handled by
     /// the caller.
     #[inline]
-    fn draw_image(&mut self, name: &Self::ImageResource, matrix: &Matrix) {
+    fn draw_image(&mut self, name: &I, matrix: &Matrix) {
         self.draw_image_uv(name, matrix, [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0])
     }
 
@@ -51,7 +45,7 @@ pub trait Draw {
     /// borders. Coordinates `[0.0, 0.0]` correspond to the bottom-left hand corner of the
     /// image, and `[1.0, 1.0]` correspond to the top-right hand corner.
     #[inline]
-    fn draw_image_uv(&mut self, name: &Self::ImageResource, matrix: &Matrix, top_left: [f32; 2],
+    fn draw_image_uv(&mut self, name: &I, matrix: &Matrix, top_left: [f32; 2],
                      top_right: [f32; 2], bottom_right: [f32; 2], bottom_left: [f32; 2])
     {
         self.draw_triangle(name, matrix, [top_left, bottom_left, top_right]);
@@ -61,18 +55,20 @@ pub trait Draw {
     }
 
     /// Given an image, this functions returns its width divided by its height.
-    fn get_image_width_per_height(&mut self, name: &Self::ImageResource) -> f32;
+    fn get_image_width_per_height(&mut self, name: &I) -> f32;
+}
 
+pub trait DrawText<T: ?Sized> {
     /// Does the same as `draw_image`, but draws a glyph of a text instead.
-    fn draw_glyph(&mut self, text_style: &Self::TextStyle, glyph: char, matrix: &Matrix);
+    fn draw_glyph(&mut self, text_style: &T, glyph: char, matrix: &Matrix);
 
     /// Returns the height of a line of text in EMs.
     ///
     /// This value is usually somewhere around `1.2`.
-    fn line_height(&self, text_style: &Self::TextStyle) -> f32;
+    fn line_height(&self, text_style: &T) -> f32;
 
     /// Returns information about a specific glyph.
-    fn glyph_infos(&self, text_style: &Self::TextStyle, glyph: char) -> GlyphInfos;
+    fn glyph_infos(&self, text_style: &T, glyph: char) -> GlyphInfos;
 
     /// Returns the kerning between two characters for the given font.
     ///
@@ -83,7 +79,7 @@ pub trait Draw {
     /// A positive value moves the second character further away from the first one, while a
     /// negative values moves the second character next to the first one. The value must be a
     /// multiple of 1 em. When in doubt, you can simply return `0.0`.
-    fn kerning(&self, text_style: &Self::TextStyle, first_char: char, second_char: char) -> f32;
+    fn kerning(&self, text_style: &T, first_char: char, second_char: char) -> f32;
 }
 
 /// Information about a single glyph.

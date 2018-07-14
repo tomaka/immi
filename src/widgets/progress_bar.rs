@@ -15,7 +15,7 @@
 //!
 
 use Alignment;
-use Draw;
+use DrawImage;
 use DrawContext;
 use HorizontalAlignment;
 
@@ -29,9 +29,10 @@ use widgets::image;
 ///
 /// Panicks if `progress` is not between 0.0 and 1.0.
 #[inline]
-pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, empty: &D::ImageResource,
-                              full: &D::ImageResource, progress: f32,
-                              progress_direction: &HorizontalAlignment, alignment: &Alignment)
+pub fn draw<D: ?Sized + DrawImage<I>, I: ?Sized>(draw: &DrawContext<D>, empty: &I,
+                                                 full: &I, progress: f32,
+                                                 progress_direction: &HorizontalAlignment,
+                                                 alignment: &Alignment)
 {
     let draw = draw.animation_stop();
     let ratio = draw.draw().get_image_width_per_height(empty);
@@ -44,9 +45,9 @@ pub fn draw<D: ?Sized + Draw>(draw: &DrawContext<D>, empty: &D::ImageResource,
 /// # Panic
 ///
 /// Panicks if `progress` is not between 0.0 and 1.0.
-pub fn stretch<D: ?Sized + Draw>(draw: &DrawContext<D>, empty: &D::ImageResource,
-                                 full: &D::ImageResource, progress: f32,
-                                 progress_direction: &HorizontalAlignment)
+pub fn stretch<D: ?Sized + DrawImage<I>, I: ?Sized>(draw: &DrawContext<D>, empty: &I,
+                                                    full: &I, progress: f32,
+                                                    progress_direction: &HorizontalAlignment)
 {
     assert!(progress >= 0.0);
     assert!(progress <= 1.0);
